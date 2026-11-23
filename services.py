@@ -80,6 +80,34 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["hobby", "hobbies", "dance", "dancing", "workout", "gym", "free time", "outside", "lifestyle", "memes", "politics"]):
         return "Outside work, I hit the gym regularly, follow a vegetarian diet, and love dancing. I also stay plugged into the latest tech news, politics, and memes, and love reverse-engineering gadgets like room neon controllers."
 
+    # College & Graduation / Major
+    if any(k in text for k in ["graduate", "graduation", "college", "university", "major", "degree", "branch", "iit", "physics"]):
+        return "I graduated from IIT Bombay in 2024 with a B.Tech in Engineering Physics. It gave me a super strong mathematical and first-principles foundation that I now use every day in AI engineering."
+
+    # Location & Current City
+    if any(k in text for k in ["where do you live", "where are you from", "location", "based out of", "current city"]):
+        return "I'm currently based in Bengaluru, India, working as an AI Engineer."
+
+    # Tech stack & Preferred languages
+    if any(k in text for k in ["tech stack", "languages", "tools", "frameworks", "python", "favourite language", "favorite language"]):
+        return "Python is my primary weapon of choice, along with FastAPI, PyTorch, and LangGraph. For data and agents, I work heavily with PostgreSQL pgvector, Elasticsearch, FalkorDB, and Model Context Protocol."
+
+    # Day / Small talk: "How was your day?", "How are you doing?"
+    if any(k in text for k in ["how was your day", "how's your day", "how are you", "how are you doing", "how's it going"]):
+        return "My day's going great! Been hacking on AI systems and tinkering with models. How's yours going?"
+
+    # Mechatronics / Hardware / Robot / Neon controller
+    if any(k in text for k in ["robot", "mechatronics", "hardware", "neon", "remote", "roorkee"]):
+        return "I love hands-on hardware. During college I built an automated washbasin cleaner robot at IIT Roorkee, and recently I've been building a custom RF remote to control the neon posters in my room."
+
+    # Food / Vegetarian
+    if any(k in text for k in ["food", "diet", "vegetarian", "eat", "favorite food"]):
+        return "I'm 100% vegetarian and love staying healthy and fit, though good street food or a solid paneer dish always hits the spot."
+
+    # Safe Guardrail for queries outside your domain or overly personal
+    if any(k in text for k in ["girlfriend", "relationship", "salary", "politics opinion", "who will win"]):
+        return "Haha, I prefer keeping my focus on building cool tech, engineering agents, and working out. What else would you like to know about my projects?"
+
     # Natural, concise general conversational fallback
     return "Yeah, absolutely! Feel free to ask about my work at Genpact, my open-source projects, or anything else you'd like to explore."
 
