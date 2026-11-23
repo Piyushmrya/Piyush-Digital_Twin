@@ -227,6 +227,15 @@ if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
+# Mount Gradio app compatibility for 100% Free Hugging Face Spaces (sdk: gradio)
+try:
+    import gradio as gr
+    # Empty block allowing HF Spaces Gradio runner to serve FastAPI natively
+    demo = gr.Blocks()
+    app = gr.mount_gradio_app(app, demo, path="/gradio")
+except Exception as e:
+    print(f"Gradio mount notice: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=7860, reload=True)
