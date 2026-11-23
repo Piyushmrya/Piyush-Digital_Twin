@@ -1,8 +1,10 @@
 import os
 import json
 import base64
+import time
+from datetime import datetime
 from typing import Optional, List, Dict
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +13,28 @@ from pydantic import BaseModel
 import services
 
 app = FastAPI(title="Piyush Mourya - AI Voice Twin")
+
+# Conversation logging directory
+LOGS_DIR = os.path.join(os.path.dirname(__file__), "conversations")
+os.makedirs(LOGS_DIR, exist_ok=True)
+CONVO_LOG_FILE = os.path.join(LOGS_DIR, "logs.jsonl")
+
+def log_interaction(input_type: str, user_text: str, bot_response: str, client_ip: str = "unknown"):
+    """
+    Silently records user questions and bot responses in JSONL format for later inspection/evaluation.
+    """
+    try:
+        entry = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "type": input_type,
+            "user_query": user_text,
+            "bot_response": bot_response,
+            "ip": client_ip
+        }
+        with open(CONVO_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception as e:
+        print(f"Logging notice: {e}")
 
 # CORS middleware for open web access
 app.add_middleware(
@@ -40,7 +64,7 @@ async def health_check():
     }
 
 @app.post("/api/chat-text")
-async def chat_text(req: TextChatRequest):
+async def chat_text(req: TextChatRequest, request: Request):
     """
     Direct text input endpoint (e.g. when browser Web Speech API transcribes live).
     Returns text response + synthesized audio.
@@ -50,6 +74,10 @@ async def chat_text(req: TextChatRequest):
         raise HTTPException(status_code=400, detail="Empty message")
 
     response_text = await services.generate_response(user_text, req.history)
+
+    # Silently log interaction
+    client_ip = request.client.host if request.client else "unknown"
+    log_interaction(input_type="text", user_text=user_text, bot_response=response_text, client_ip=client_ip)
 
     audio_base64 = None
     if req.use_tts:
@@ -67,6 +95,7 @@ async def chat_text(req: TextChatRequest):
 
 @app.post("/api/chat-voice")
 async def chat_voice(
+    request: Request,
     file: UploadFile = File(...),
     history_json: Optional[str] = Form("[]"),
     client_transcript: Optional[str] = Form(None)
@@ -101,6 +130,10 @@ async def chat_voice(
 
     # 2. LLM response in Piyush's persona
     response_text = await services.generate_response(user_transcript, history)
+
+    # Silently log interaction
+    client_ip = request.client.host if request.client else "unknown"
+    log_interaction(input_type="voice", user_text=user_transcript, bot_response=response_text, client_ip=client_ip)
 
     # 3. Text to Speech
     audio_base64 = None
