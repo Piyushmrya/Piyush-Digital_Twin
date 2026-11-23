@@ -11,6 +11,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import gradio as gr
 
+# Hugging Face ZeroGPU compatibility
+try:
+    import spaces
+    @spaces.GPU
+    def zero_gpu_probe():
+        return True
+    # Run once at startup so ZeroGPU registers the function
+    zero_gpu_probe()
+except Exception:
+    pass
+
 import services
 
 app = FastAPI(title="Piyush Mourya - AI Voice Twin")
