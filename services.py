@@ -167,20 +167,21 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
 
     # 2. Try Gemini fallback if present
     if genai_client:
-        try:
-            model_name = "gemini-2.0-flash"
-            full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation:\n"
-            for msg in conversation_history[-4:]:
-                full_prompt += f"{msg['role']}: {msg['content']}\n"
-            full_prompt += f"user: {user_text}\nPiyush:"
+        for gemini_model in ["gemini-flash-lite-latest", "gemini-flash-latest"]:
+            try:
+                full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation:\n"
+                for msg in conversation_history[-4:]:
+                    full_prompt += f"{msg['role']}: {msg['content']}\n"
+                full_prompt += f"user: {user_text}\nPiyush:"
 
-            response = genai_client.models.generate_content(
-                model=model_name,
-                contents=full_prompt
-            )
-            return response.text.strip(), model_name
-        except Exception as e:
-            print(f"Gemini fallback error: {e}")
+                response = genai_client.models.generate_content(
+                    model=gemini_model,
+                    contents=full_prompt
+                )
+                if response.text and response.text.strip():
+                    return response.text.strip(), gemini_model
+            except Exception as e:
+                print(f"Gemini {gemini_model} error: {e}")
 
     # 3. Intelligent in-character persona fallback (zero leakage of system or API info)
     return get_offline_persona_response(user_text), "offline-rule-matcher"
