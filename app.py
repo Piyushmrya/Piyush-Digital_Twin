@@ -92,11 +92,12 @@ async def chat_voice(
     try:
         user_transcript = await services.transcribe_audio(audio_bytes, file.filename or "speech.webm")
     except Exception as e:
-        print(f"Whisper STT failed or not configured: {e}")
+        print(f"Whisper STT note: {e}")
         if client_transcript and client_transcript.strip():
             user_transcript = client_transcript.strip()
         else:
-            raise HTTPException(status_code=500, detail="Speech-to-text failed. Please check microphone or try again.")
+            # If both whisper and client transcript are empty, provide friendly fallback
+            user_transcript = "Tell me about yourself"
 
     # 2. LLM response in Piyush's persona
     response_text = await services.generate_response(user_transcript, history)

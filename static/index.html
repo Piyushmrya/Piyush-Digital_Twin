@@ -489,6 +489,22 @@
         backendStatus.innerText = 'Online';
       });
 
+    let silenceTimer = null;
+    let initialSilenceTimer = null;
+
+    function resetSilenceTimer() {
+      if (silenceTimer) clearTimeout(silenceTimer);
+      if (initialSilenceTimer) clearTimeout(initialSilenceTimer);
+
+      // Auto-submit after 4.5 seconds of silence once user has spoken
+      silenceTimer = setTimeout(() => {
+        if (state === 'listening') {
+          console.log("Silence detected: auto-submitting audio...");
+          stopRecording();
+        }
+      }, 4500);
+    }
+
     // Initialize Web Speech API for clean live streaming preview
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -510,6 +526,7 @@
         if (combined && state === 'listening') {
           liveTranscriptText.innerText = combined;
           liveBubble.classList.add('active');
+          resetSilenceTimer();
         }
       };
 
@@ -541,6 +558,17 @@
       liveTranscriptText.innerText = "Listening to your voice...";
       liveBubble.classList.add('active');
 
+      if (silenceTimer) clearTimeout(silenceTimer);
+      if (initialSilenceTimer) clearTimeout(initialSilenceTimer);
+
+      // If user starts recording but doesn't say anything at all for 7 seconds, auto-stop
+      initialSilenceTimer = setTimeout(() => {
+        if (state === 'listening' && !liveTranscript) {
+          console.log("No speech detected: ending recording");
+          stopRecording();
+        }
+      }, 7000);
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
@@ -569,6 +597,9 @@
     }
 
     function stopRecording() {
+      if (silenceTimer) clearTimeout(silenceTimer);
+      if (initialSilenceTimer) clearTimeout(initialSilenceTimer);
+
       liveBubble.classList.remove('active');
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
