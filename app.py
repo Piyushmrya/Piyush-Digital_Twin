@@ -214,22 +214,13 @@ async def chat_voice(
     }
 
 # Serve the custom interactive Voice Bot UI via Gradio HTML component
-with gr.Blocks(title="Piyush Mourya - AI Voice Twin", css="body, .gradio-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }") as demo:
-    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
-    html_content = ""
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            html_content = f.read()
-    else:
-        html_content = "<h1>Voice Bot running</h1>"
-    
-    # Render full web application inside iframe with microphone permissions
+with gr.Blocks(title="Piyush Mourya - AI Voice Twin") as demo:
     gr.HTML(
-        f'<iframe src="/static/index.html" allow="microphone; autoplay" style="width:100%; height:100vh; border:none; display:block;"></iframe>'
+        '<iframe src="/static/index.html" allow="microphone; autoplay" style="width:100%; height:96vh; border:none; display:block;"></iframe>'
     )
 
-app = gr.mount_gradio_app(app, demo, path="/")
+app = gr.mount_gradio_app(app, demo, path="/gradio")
 
+# On Hugging Face Spaces with sdk: gradio, HF expects demo.launch()
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=7860)
+    demo.launch(app=app, server_name="0.0.0.0", server_port=7860)
