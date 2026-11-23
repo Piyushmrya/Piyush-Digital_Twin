@@ -41,6 +41,11 @@ def get_offline_persona_response(user_text: str) -> str:
     """
     text = user_text.lower()
 
+    # Specific greetings / slang
+    if any(k in text for k in ["broski", "bro", "what's going on", "wassup", "what's up", "hey", "hello", "hi"]):
+        if "hobbies" not in text and "project" not in text:
+            return "Hey! Doing great. What's on your mind? Feel free to ask about my projects, work, or anything you're curious about."
+
     if any(k in text for k in ["join", "hire", "company", "work with us", "role", "job", "offer"]):
         return "Definitely! If there are challenging AI systems or agentic infra to architect, I'd love to learn more about what you guys are building."
 
@@ -59,14 +64,21 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["push", "boundary", "limit", "challenge"]):
         return "I push my limits by diving straight into unfamiliar territory—like building hardware robots at IIT Roorkee, contributing upstream to Google ADK, or hacking together my own controllers."
 
-    if any(k in text for k in ["adk", "genpact", "project", "onesearchgo", "mcp"]):
-        return "At Genpact, I built an enterprise agent platform handling 30K+ daily queries over 7TB of data on Google ADK and MCP. I also contributed upstream to Google's ADK repo."
+    # Major enterprise work
+    if any(k in text for k in ["major project", "work project", "enterprise", "genpact", "at work"]):
+        return "At Genpact, I architected a production metadata query platform on Google ADK and MCP. It gives natural language access to 7TB of enterprise data across PostgreSQL, Elasticsearch, and FalkorDB at over 30K queries daily."
 
-    if any(k in text for k in ["hobby", "free time", "outside", "lifestyle", "workout", "dance", "diet"]):
-        return "Outside work, I hit the gym, follow a vegetarian diet, and love dancing. I'm also usually reverse-engineering gadgets or catching up on tech memes."
+    # Open source contribution apart from company
+    if any(k in text for k in ["open source", "adk repo", "apart from work", "google adk contribution", "contributed"]):
+        return "On the open-source front, I contributed MCP sampling support to Google's Agent Development Kit, enabling agent tools to request client-side LLM completions, which got merged via PR 4718."
 
-    if any(k in text for k in ["hello", "hi", "hey", "what's up", "how are you"]):
-        return "Hey! Doing great. What would you like to know about my work, projects, or background?"
+    # Personal project: OneSearchGo with the real diary/life-logging motivation
+    if any(k in text for k in ["personal project", "onesearchgo", "side project", "built for yourself", "diary", "side build"]):
+        return "I built OneSearchGo because I write daily journals and notes, but found it really hard to remember and piece together everything across SMS, voice dumps, screenshots, and logs. So I built an AI agent on FastAPI and pgvector where I dump all my daily data and retrieve anything instantly through semantic search and SQL."
+
+    # Hobbies & lifestyle
+    if any(k in text for k in ["hobby", "hobbies", "dance", "dancing", "workout", "gym", "free time", "outside", "lifestyle", "memes", "politics"]):
+        return "Outside work, I hit the gym regularly, follow a vegetarian diet, and love dancing. I also stay plugged into the latest tech news, politics, and memes, and love reverse-engineering gadgets like room neon controllers."
 
     # Natural, concise general conversational fallback
     return "Yeah, absolutely! Feel free to ask about my work at Genpact, my open-source projects, or anything else you'd like to explore."
