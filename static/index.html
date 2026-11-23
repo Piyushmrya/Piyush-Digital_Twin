@@ -424,30 +424,31 @@
     </div>
 
     <div class="state-label" id="state-title">Tap to Speak</div>
-    <div class="sub-hint" id="state-desc">Click the orb to ask a question, or choose a topic below</div>
+    <div class="sub-hint" id="state-desc">Click the orb to ask anything, or click an FAQ below</div>
 
     <!-- Live Floating Speech Bubble (mild transparent, shown only when speaking) -->
     <div class="live-voice-bubble" id="live-bubble">
       <div class="soundwave"><span></span><span></span><span></span><span></span></div>
-      <span id="live-transcript-text">Speaking...</span>
+      <span id="live-transcript-text">Listening...</span>
     </div>
 
     <!-- Final Conversation Transcript Area -->
     <div class="transcript-box">
       <h3>Conversation</h3>
       <div class="transcript-text" id="transcript-display">
-        <div class="empty">Hi! Tap the mic to ask me a question, or select one of the suggested topics below.</div>
+        <div class="empty">Hi! Tap the mic to ask me anything, or try one of the FAQs below.</div>
       </div>
     </div>
 
+    <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:8px; font-weight:600;">Sample FAQs</div>
     <div class="suggestions">
-      <div class="chip" onclick="askQuestion('What should we know about your life story in a few sentences?')">📖 Life Story</div>
-      <div class="chip" onclick="askQuestion('What is your number one superpower?')">⚡ #1 Superpower</div>
-      <div class="chip" onclick="askQuestion('What are the top three areas you would like to grow in?')">🌱 Growth Areas</div>
-      <div class="chip" onclick="askQuestion('What misconception do your coworkers have about you?')">🎭 Common Misconception</div>
-      <div class="chip" onclick="askQuestion('How do you push your boundaries and limits?')">🚀 Pushing Boundaries</div>
-      <div class="chip" onclick="askQuestion('Tell me about your Google ADK contribution and Genpact work.')">🛠️ Work & Open Source</div>
-      <div class="chip" onclick="askQuestion('What do you like to do outside of coding and engineering?')">🧗 Lifestyle & Hobbies</div>
+      <div class="chip" onclick="askQuestion('What should we know about your life story in a few sentences?')">What's your life story?</div>
+      <div class="chip" onclick="askQuestion('What is your number one superpower?')">What's your #1 superpower?</div>
+      <div class="chip" onclick="askQuestion('What are the top three areas you would like to grow in?')">Top 3 growth areas?</div>
+      <div class="chip" onclick="askQuestion('What misconception do your coworkers have about you?')">Coworker misconception?</div>
+      <div class="chip" onclick="askQuestion('How do you push your boundaries and limits?')">How do you push boundaries?</div>
+      <div class="chip" onclick="askQuestion('Tell me about your Google ADK contribution and Genpact work.')">Tell me about your work</div>
+      <div class="chip" onclick="askQuestion('What do you like to do outside of coding and engineering?')">What are your hobbies?</div>
     </div>
   </main>
 

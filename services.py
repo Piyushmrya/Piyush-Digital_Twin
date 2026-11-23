@@ -37,67 +37,39 @@ from persona import PIYUSH_PERSONA_PROMPT
 def get_offline_persona_response(user_text: str) -> str:
     """
     Intelligent offline fallback that responds strictly in Piyush's persona
-    matching topics and keywords, without ever exposing technical or API key details.
+    matching topics and keywords, keeping answers crisp, natural, and never stiff.
     """
     text = user_text.lower()
 
-    if any(k in text for k in ["life story", "background", "about you", "who are you", "introduce"]):
-        return (
-            "I graduated from IIT Bombay in Engineering Physics, where I developed a strong foundation "
-            "in first-principles thinking and competitive math. That curiosity led me to AI and robotics, "
-            "and today I work as an AI Engineer at Genpact building production agentic systems on Google ADK "
-            "and MCP, while actively contributing upstream to open source."
-        )
+    if any(k in text for k in ["join", "hire", "company", "work with us", "role", "job", "offer"]):
+        return "Definitely! If there are challenging AI systems or agentic infra to architect, I'd love to learn more about what you guys are building."
+
+    if any(k in text for k in ["life story", "background", "about you", "who are you", "introduce", "tell me about yourself"]):
+        return "I graduated from IIT Bombay in Engineering Physics and transitioned straight into AI. Today I work as an AI Engineer at Genpact building production agentic systems, and I love tinkering on open-source and side projects."
 
     if any(k in text for k in ["superpower", "strength", "best at", "greatest strength"]):
-        return (
-            "My number one superpower is bridging first-principles analytical thinking with practical execution. "
-            "Coming from engineering physics, I don't treat complex distributed architectures or AI models as "
-            "black boxes. I break them down to fundamentals, isolate bottlenecks, and ship clean, tested code."
-        )
+        return "My superpower is breaking down complex problems to first principles and quickly turning them into clean, reliable production code."
 
     if any(k in text for k in ["grow", "growth", "improve", "areas to grow", "weakness"]):
-        return (
-            "The top three areas I'm focused on growing in are: first, ultra-low latency real-time voice and multimodal "
-            "agentic loops. Second, automated evaluation harnesses and statistical LLM-as-a-judge frameworks for production. "
-            "And third, large-scale distributed inference infrastructure."
-        )
+        return "Right now, I'm focusing on ultra-low latency real-time voice agents, statistical evaluation harnesses, and distributed AI inference."
 
     if any(k in text for k in ["misconception", "coworker", "peers think", "misunderstand"]):
-        return (
-            "A common misconception people have when they see my Engineering Physics degree and competitive math "
-            "background is that I'm purely academic or theoretical. In reality, I'm a relentless builder who cares "
-            "deeply about shipping production code, rock-solid tests, and reliable systems."
-        )
+        return "People sometimes assume my physics and competitive math background makes me theoretical, but I'm actually an obsessive builder who loves shipping and writing solid tests."
 
     if any(k in text for k in ["push", "boundary", "limit", "challenge"]):
-        return (
-            "I push my boundaries by diving headfirst into uncharted domains until I can build them from scratch. "
-            "Whether that was building an automated washbasin cleaner robot at IIT Roorkee, contributing upstream "
-            "to Google's Agent Development Kit, or hacking custom hardware controllers for my room's neon posters, "
-            "I thrive when exploring outside my comfort zone."
-        )
+        return "I push my limits by diving straight into unfamiliar territory—like building hardware robots at IIT Roorkee, contributing upstream to Google ADK, or hacking together my own controllers."
 
-    if any(k in text for k in ["adk", "genpact", "work", "project", "onesearchgo", "mcp"]):
-        return (
-            "At Genpact, I architected an enterprise agentic query platform handling over 30K daily queries across 7TB "
-            "of multi-database data using Google ADK and MCP. I also implemented MCP sampling support for Google's ADK "
-            "which was merged upstream, and on the side, I built OneSearchGo to unify personal life-logging."
-        )
+    if any(k in text for k in ["adk", "genpact", "project", "onesearchgo", "mcp"]):
+        return "At Genpact, I built an enterprise agent platform handling 30K+ daily queries over 7TB of data on Google ADK and MCP. I also contributed upstream to Google's ADK repo."
 
     if any(k in text for k in ["hobby", "free time", "outside", "lifestyle", "workout", "dance", "diet"]):
-        return (
-            "Outside of engineering, I hit the gym regularly to stay fit, follow a vegetarian lifestyle, and love dancing. "
-            "I also love tinkering with hardware, like building my own remote control for my room's neon lights, and keeping "
-            "up with everything from AI research to internet memes."
-        )
+        return "Outside work, I hit the gym, follow a vegetarian diet, and love dancing. I'm also usually reverse-engineering gadgets or catching up on tech memes."
 
-    # General conversational fallback staying 100% in character
-    return (
-        "That's an interesting question! As an AI engineer from IIT Bombay, I love breaking down complex ideas "
-        "from first principles. Feel free to ask me about my engineering work at Genpact, my open-source contributions, "
-        "or what I like building in my free time."
-    )
+    if any(k in text for k in ["hello", "hi", "hey", "what's up", "how are you"]):
+        return "Hey! Doing great. What would you like to know about my work, projects, or background?"
+
+    # Natural, concise general conversational fallback
+    return "Yeah, absolutely! Feel free to ask about my work at Genpact, my open-source projects, or anything else you'd like to explore."
 
 
 
