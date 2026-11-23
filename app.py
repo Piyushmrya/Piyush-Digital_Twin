@@ -213,15 +213,29 @@ async def chat_voice(
         "audio_base64": audio_base64
     }
 
-# Serve the custom interactive Voice Bot UI via Gradio HTML component
+# Mount the custom interactive UI as root
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>Piyush Voice Bot is running</h1>")
+
+# Mount static folder for assets
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if not os.path.exists(static_dir):
+    os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Create Gradio demo and mount FastAPI onto it
 with gr.Blocks(title="Piyush Mourya - AI Voice Twin") as demo:
     gr.HTML(
         '<iframe src="/static/index.html" allow="microphone; autoplay" style="width:100%; height:96vh; border:none; display:block;"></iframe>'
     )
 
-app = gr.mount_gradio_app(app, demo, path="/gradio")
+# Mount FastAPI endpoints onto demo.app so all /api endpoints work seamlessly
+demo.app = app
 
 if __name__ == "__main__":
-    import uvicorn
-    # Use uvicorn on the combined app
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    demo.launch(server_name="0.0.0.0", server_port=7860)
