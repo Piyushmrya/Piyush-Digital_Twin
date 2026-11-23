@@ -221,6 +221,7 @@ with gr.Blocks(title="Piyush Mourya - AI Voice Twin") as demo:
 
 app = gr.mount_gradio_app(app, demo, path="/gradio")
 
-# On Hugging Face Spaces with sdk: gradio, HF expects demo.launch()
 if __name__ == "__main__":
-    demo.launch(app=app, server_name="0.0.0.0", server_port=7860)
+    import uvicorn
+    # Use uvicorn on the combined app
+    uvicorn.run(app, host="0.0.0.0", port=7860)
