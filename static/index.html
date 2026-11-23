@@ -60,7 +60,7 @@
     header {
       width: 100%;
       max-width: 900px;
-      padding: 24px 20px;
+      padding: 24px 20px 10px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -135,19 +135,19 @@
     /* Interactive Voice Orb */
     .orb-wrapper {
       position: relative;
-      width: 220px;
-      height: 220px;
+      width: 200px;
+      height: 200px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
       cursor: pointer;
       user-select: none;
     }
 
     .orb-pulse {
       position: absolute;
-      inset: -20px;
+      inset: -15px;
       border-radius: 50%;
       background: var(--primary-glow);
       filter: blur(25px);
@@ -157,11 +157,11 @@
 
     .orb-core {
       position: relative;
-      width: 170px;
-      height: 170px;
+      width: 155px;
+      height: 155px;
       border-radius: 50%;
       background: var(--orb-idle);
-      box-shadow: 0 0 40px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 35px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.3);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -171,8 +171,8 @@
     }
 
     .orb-core svg {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       fill: none;
       stroke: #fff;
       stroke-width: 2;
@@ -212,51 +212,116 @@
       font-size: 1.15rem;
       font-weight: 600;
       color: var(--text-main);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       letter-spacing: -0.01em;
     }
 
     .sub-hint {
       font-size: 0.85rem;
       color: var(--text-muted);
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
 
-    /* Live Transcription Box */
+    /* Live Floating Voice Bubble (separate, mild transparent, non-intrusive) */
+    .live-voice-bubble {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      margin-bottom: 18px;
+      font-size: 0.88rem;
+      color: #94a3b8;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+    }
+
+    .live-voice-bubble.active {
+      opacity: 1;
+      transform: translateY(0);
+      color: #cbd5e1;
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.25);
+    }
+
+    .soundwave {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      height: 14px;
+    }
+
+    .soundwave span {
+      width: 3px;
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      animation: wave 1s infinite ease-in-out alternate;
+    }
+    .soundwave span:nth-child(2) { animation-delay: 0.2s; height: 60%; }
+    .soundwave span:nth-child(3) { animation-delay: 0.4s; height: 80%; }
+    .soundwave span:nth-child(4) { animation-delay: 0.1s; height: 40%; }
+
+    @keyframes wave {
+      0% { transform: scaleY(0.3); }
+      100% { transform: scaleY(1.2); }
+    }
+
+    /* Conversation Box */
     .transcript-box {
       width: 100%;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
-      padding: 18px 20px;
+      padding: 18px 22px;
       text-align: left;
       backdrop-filter: blur(12px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      margin-bottom: 20px;
-      max-height: 220px;
+      margin-bottom: 18px;
+      max-height: 240px;
       overflow-y: auto;
       transition: all 0.3s ease;
     }
 
     .transcript-box h3 {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       font-weight: 600;
     }
 
-    .transcript-text {
+    .exchange-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       font-size: 0.95rem;
       line-height: 1.6;
-      color: #e2e8f0;
-      min-height: 24px;
+    }
+
+    .user-line {
+      color: #f1f5f9;
+      font-weight: 500;
+    }
+
+    .bot-line {
+      color: #cbd5e1;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .transcript-text.empty {
       color: #64748b;
-      font-style: italic;
+      font-style: normal;
+      font-size: 0.92rem;
     }
 
     /* Suggestion Chips */
@@ -266,7 +331,7 @@
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      margin-top: 10px;
+      margin-top: 8px;
     }
 
     .chip {
@@ -292,16 +357,11 @@
     footer {
       width: 100%;
       max-width: 900px;
-      padding: 20px;
+      padding: 18px;
       text-align: center;
       font-size: 0.78rem;
       color: #64748b;
       z-index: 10;
-    }
-
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
     }
 
     /* Keyframes */
@@ -327,8 +387,8 @@
 
     /* Responsive adjustments */
     @media (max-width: 600px) {
-      .orb-wrapper { width: 180px; height: 180px; }
-      .orb-core { width: 140px; height: 140px; }
+      .orb-wrapper { width: 170px; height: 170px; }
+      .orb-core { width: 135px; height: 135px; }
       .suggestions { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 8px; }
     }
   </style>
@@ -364,12 +424,19 @@
     </div>
 
     <div class="state-label" id="state-title">Tap to Speak</div>
-    <div class="sub-hint" id="state-desc">Click the orb and ask me anything about my background or projects</div>
+    <div class="sub-hint" id="state-desc">Click the orb to ask a question, or choose a topic below</div>
 
+    <!-- Live Floating Speech Bubble (mild transparent, shown only when speaking) -->
+    <div class="live-voice-bubble" id="live-bubble">
+      <div class="soundwave"><span></span><span></span><span></span><span></span></div>
+      <span id="live-transcript-text">Speaking...</span>
+    </div>
+
+    <!-- Final Conversation Transcript Area -->
     <div class="transcript-box">
       <h3>Conversation</h3>
       <div class="transcript-text" id="transcript-display">
-        <span class="empty">"Hi there! Tap the mic to ask me a question, or click any suggestion below."</span>
+        <div class="empty">Hi! Tap the mic to ask me a question, or select one of the suggested topics below.</div>
       </div>
     </div>
 
@@ -385,7 +452,7 @@
   </main>
 
   <footer>
-    Interactive Voice Bot &middot; Powered by FastAPI & Edge Neural Voice &middot; Piyush Mourya
+    Interactive Voice Bot &middot; Powered by FastAPI & Neural Voice &middot; Piyush Mourya
   </footer>
 
   <script>
@@ -403,24 +470,26 @@
     const stateDesc = document.getElementById('state-desc');
     const transcriptDisplay = document.getElementById('transcript-display');
     const backendStatus = document.getElementById('backend-status');
+    const liveBubble = document.getElementById('live-bubble');
+    const liveTranscriptText = document.getElementById('live-transcript-text');
 
     // Check backend health
     fetch('/api/health')
       .then(res => res.json())
       .then(data => {
         if (data.mode === 'openai') {
-          backendStatus.innerText = 'OpenAI High-Fidelity';
+          backendStatus.innerText = 'Voice Active (OpenAI)';
         } else if (data.mode === 'gemini') {
-          backendStatus.innerText = 'Gemini Powered';
+          backendStatus.innerText = 'Voice Active (Gemini)';
         } else {
-          backendStatus.innerText = 'Neural TTS Active';
+          backendStatus.innerText = 'Voice Active (Neural)';
         }
       })
       .catch(() => {
-        backendStatus.innerText = 'Local Server';
+        backendStatus.innerText = 'Online';
       });
 
-    // Initialize Web Speech API for instant live feedback
+    // Initialize Web Speech API for clean live streaming preview
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       liveRecognition = new SpeechRecognition();
@@ -432,14 +501,15 @@
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
-            liveTranscript += event.results[i][0].transcript;
+            liveTranscript += (liveTranscript ? ' ' : '') + event.results[i][0].transcript.trim();
           } else {
-            interim += event.results[i][0].transcript;
+            interim += ' ' + event.results[i][0].transcript.trim();
           }
         }
-        const currentDisplay = (liveTranscript + ' ' + interim).trim();
-        if (currentDisplay && state === 'listening') {
-          transcriptDisplay.innerHTML = `<strong>You:</strong> ${escapeHtml(currentDisplay)} <em>(listening...)</em>`;
+        const combined = (liveTranscript + ' ' + interim).trim();
+        if (combined && state === 'listening') {
+          liveTranscriptText.innerText = combined;
+          liveBubble.classList.add('active');
         }
       };
 
@@ -462,13 +532,14 @@
     });
 
     async function startRecording() {
-      // Audio playback interrupted if currently speaking
       if (audioPlayer) {
         audioPlayer.pause();
       }
 
       audioChunks = [];
       liveTranscript = "";
+      liveTranscriptText.innerText = "Listening to your voice...";
+      liveBubble.classList.add('active');
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -492,11 +563,13 @@
         setState('listening');
       } catch (err) {
         console.error("Microphone error:", err);
-        alert("Please enable microphone permissions in your browser to talk.");
+        liveBubble.classList.remove('active');
+        alert("Please allow microphone permissions to speak.");
       }
     }
 
     function stopRecording() {
+      liveBubble.classList.remove('active');
       if (mediaRecorder && mediaRecorder.state !== 'inactive') {
         mediaRecorder.stop();
       }
@@ -530,7 +603,7 @@
         renderExchange(data.user_transcript, data.response_text, data.audio_base64);
       } catch (err) {
         console.error("Process voice error:", err);
-        transcriptDisplay.innerHTML = `<span style="color:#ef4444;">Error processing voice input. Please try again or tap a suggestion chip.</span>`;
+        transcriptDisplay.innerHTML = `<span style="color:#ef4444;">Could not process audio. Please try again or tap a suggestion chip.</span>`;
         setState('idle');
       }
     }
@@ -542,7 +615,12 @@
       }
 
       setState('thinking');
-      transcriptDisplay.innerHTML = `<strong>You:</strong> ${escapeHtml(text)}<br><em>Thinking...</em>`;
+      transcriptDisplay.innerHTML = `
+        <div class="exchange-row">
+          <div class="user-line"><strong>You:</strong> ${escapeHtml(text)}</div>
+          <div class="bot-line" style="color:var(--text-muted); font-style:italic;">Formulating answer...</div>
+        </div>
+      `;
 
       try {
         const res = await fetch('/api/chat-text', {
@@ -570,8 +648,10 @@
       conversationHistory.push({ role: 'assistant', content: botResponse });
 
       transcriptDisplay.innerHTML = `
-        <div style="margin-bottom: 12px;"><strong>You:</strong> ${escapeHtml(userText)}</div>
-        <div><strong style="color:var(--accent);">Piyush:</strong> ${escapeHtml(botResponse)}</div>
+        <div class="exchange-row">
+          <div class="user-line"><strong>You:</strong> ${escapeHtml(userText)}</div>
+          <div class="bot-line"><strong style="color:var(--accent);">Piyush:</strong> ${escapeHtml(botResponse)}</div>
+        </div>
       `;
 
       if (audioBase64) {
@@ -604,16 +684,16 @@
 
       if (state === 'idle') {
         stateTitle.innerText = "Tap to Speak";
-        stateDesc.innerText = "Click the orb and ask me anything about my background or projects";
+        stateDesc.innerText = "Click the orb to ask a question, or choose a topic below";
       } else if (state === 'listening') {
-        stateTitle.innerText = "Listening...";
-        stateDesc.innerText = "Speak now — click the orb again when finished";
+        stateTitle.innerText = "Tap to Finish";
+        stateDesc.innerText = "Click when you are done speaking";
       } else if (state === 'thinking') {
         stateTitle.innerText = "Thinking...";
-        stateDesc.innerText = "Processing your question and preparing answer...";
+        stateDesc.innerText = "Preparing answer...";
       } else if (state === 'speaking') {
         stateTitle.innerText = "Speaking...";
-        stateDesc.innerText = "Piyush is answering (click orb anytime to interrupt)";
+        stateDesc.innerText = "Click orb anytime to interrupt";
       }
     }
 
