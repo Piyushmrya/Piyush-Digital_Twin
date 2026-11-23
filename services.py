@@ -93,8 +93,8 @@ def get_offline_persona_response(user_text: str) -> str:
         return "I'm currently based in Bengaluru, India, working as an AI Engineer."
 
     # Tech stack & Preferred languages
-    if any(k in text for k in ["tech stack", "languages", "tools", "frameworks", "python", "favourite language", "favorite language"]):
-        return "Python is my primary weapon of choice, along with FastAPI, PyTorch, and LangGraph. For data and agents, I work heavily with PostgreSQL pgvector, Elasticsearch, FalkorDB, and Model Context Protocol."
+    if any(k in text for k in ["tech stack", "languages", "tools", "frameworks", "technical skills", "favourite language", "favorite language"]):
+        return "Python is my primary language, and I specialize heavily in agentic AI using Google ADK, LangGraph, CrewAI, and MCP. I have a deep foundation in transformers, LLMs, and classical ML, along with strong system design, DSA, and AWS coursework."
 
     # Day / Small talk: "How was your day?", "How are you doing?"
     if any(k in text for k in ["how was your day", "how's your day", "how are you", "how are you doing", "how's it going"]):
