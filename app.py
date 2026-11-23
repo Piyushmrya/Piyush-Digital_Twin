@@ -224,24 +224,28 @@ async def chat_voice(
         "audio_base64": audio_base64
     }
 
+# Serve the static UI directly at /app
+@app.get("/app", response_class=HTMLResponse)
+async def serve_direct_app():
+    index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="<h1>App loading...</h1>")
+
 # Mount static folder for assets
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Read full static HTML content
-index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
-html_content = ""
-if os.path.exists(index_path):
-    with open(index_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-
-# Create Gradio demo serving custom HTML UI
+# Create Gradio demo serving an interactive iframe with full permissions (scripts, microphone, autoplay)
 with gr.Blocks(title="Piyush Mourya - AI Voice Twin", head='<meta name="viewport" content="width=device-width, initial-scale=1.0">') as demo:
-    gr.HTML(html_content)
+    gr.HTML(
+        '<iframe src="/app" allow="microphone; autoplay; clipboard-write;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style="position:fixed; top:0; left:0; width:100vw; height:100vh; border:none; z-index:999999;"></iframe>'
+    )
 
-# Mount FastAPI app onto Gradio at root so both / and /api/* work
+# Mount FastAPI app onto Gradio at root
 app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
