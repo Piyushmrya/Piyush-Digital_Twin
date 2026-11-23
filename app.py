@@ -212,30 +212,23 @@ async def chat_voice(
         "audio_base64": audio_base64
     }
 
-# Serve the web UI at root
-@app.get("/", response_class=HTMLResponse)
-async def serve_index():
+# Serve the custom interactive Voice Bot UI via Gradio HTML component
+with gr.Blocks(title="Piyush Mourya - AI Voice Twin", css="body, .gradio-container { padding: 0 !important; margin: 0 !important; max-width: 100% !important; }") as demo:
     index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    html_content = ""
     if os.path.exists(index_path):
         with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse(content="<h1>Piyush Voice Bot is running. Static UI not found.</h1>")
+            html_content = f.read()
+    else:
+        html_content = "<h1>Voice Bot running</h1>"
+    
+    # Render full web application inside iframe with microphone permissions
+    gr.HTML(
+        f'<iframe src="/static/index.html" allow="microphone; autoplay" style="width:100%; height:100vh; border:none; display:block;"></iframe>'
+    )
 
-# Mount static folder if it exists
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-if not os.path.exists(static_dir):
-    os.makedirs(static_dir, exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Mount Gradio app compatibility for 100% Free Hugging Face Spaces (sdk: gradio)
-try:
-    import gradio as gr
-    # Empty block allowing HF Spaces Gradio runner to serve FastAPI natively
-    demo = gr.Blocks()
-    app = gr.mount_gradio_app(app, demo, path="/gradio")
-except Exception as e:
-    print(f"Gradio mount notice: {e}")
+app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=7860, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=7860)
