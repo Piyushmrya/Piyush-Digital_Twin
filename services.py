@@ -50,7 +50,7 @@ def get_offline_persona_response(user_text: str) -> str:
         return "Definitely! If there are challenging AI systems or agentic infra to architect, I'd love to learn more about what you guys are building."
 
     if any(k in text for k in ["life story", "background", "about you", "who are you", "introduce", "tell me about yourself"]):
-        return "I graduated from IIT Bombay in Engineering Physics and transitioned straight into AI. Today I work as an AI Engineer at Genpact building production agentic systems, and I love tinkering on open-source and side projects."
+        return "I graduated from IIT Bombay in Engineering Physics and transitioned straight into AI. In my previous role I built production enterprise agentic systems, and I love tinkering on open-source and side projects."
 
     if any(k in text for k in ["superpower", "strength", "best at", "greatest strength"]):
         return "My superpower is breaking down complex problems to first principles and quickly turning them into clean, reliable production code."
@@ -64,9 +64,13 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["push", "boundary", "limit", "challenge"]):
         return "I push my limits by diving straight into unfamiliar territory—like building hardware robots at IIT Roorkee, contributing upstream to Google ADK, or hacking together my own controllers."
 
-    # Major enterprise work
-    if any(k in text for k in ["major project", "work project", "enterprise", "genpact", "at work"]):
-        return "At Genpact, I architected a production metadata query platform on Google ADK and MCP. It gives natural language access to 7TB of enterprise data across PostgreSQL, Elasticsearch, and FalkorDB at over 30K queries daily."
+    # Specific check if company name is directly asked
+    if any(k in text for k in ["company name", "which company", "name of company", "where did you work", "employer"]):
+        return "I previously worked as an AI Engineer at Genpact, building enterprise agent systems."
+
+    # Major enterprise work (avoids naming company explicitly)
+    if any(k in text for k in ["major project", "work project", "enterprise", "at work", "previous company", "last role"]):
+        return "At my previous company, I architected a production metadata query platform on Google ADK and MCP. It gives natural language access to 7TB of enterprise data across PostgreSQL, Elasticsearch, and FalkorDB at over 30K queries daily."
 
     # Open source contribution apart from company
     if any(k in text for k in ["open source", "adk repo", "apart from work", "google adk contribution", "contributed"]):
@@ -109,7 +113,7 @@ def get_offline_persona_response(user_text: str) -> str:
         return "Haha, I prefer keeping my focus on building cool tech, engineering agents, and working out. What else would you like to know about my projects?"
 
     # Natural, concise general conversational fallback
-    return "Yeah, absolutely! Feel free to ask about my work at Genpact, my open-source projects, or anything else you'd like to explore."
+    return "Yeah, absolutely! Feel free to ask about my previous engineering work, open-source projects, or anything else you'd like to explore."
 
 
 
@@ -134,9 +138,10 @@ async def transcribe_audio(audio_bytes: bytes, filename: str = "audio.webm") -> 
     raise ValueError("No server-side STT API key configured.")
 
 
-async def generate_response(user_text: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> str:
+async def generate_response(user_text: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> tuple[str, str]:
     """
     Generates persona response using OpenAI (default) or Gemini fallback.
+    Returns (response_text, model_name).
     """
     if conversation_history is None:
         conversation_history = []
@@ -144,39 +149,41 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
     # 1. Try OpenAI if key is present
     if openai_client:
         try:
+            model_name = "gpt-4o-mini"
             messages = [{"role": "system", "content": PIYUSH_PERSONA_PROMPT}]
             for msg in conversation_history[-6:]:  # Keep recent context
                 messages.append({"role": msg["role"], "content": msg["content"]})
             messages.append({"role": "user", "content": user_text})
 
             response = openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=model_name,
                 messages=messages,
                 temperature=0.7,
                 max_tokens=250
             )
-            return response.choices[0].message.content.strip()
+            return response.choices[0].message.content.strip(), model_name
         except Exception as e:
             print(f"OpenAI completion error: {e}. Checking fallbacks...")
 
     # 2. Try Gemini fallback if present
     if genai_client:
         try:
+            model_name = "gemini-2.0-flash"
             full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation:\n"
             for msg in conversation_history[-4:]:
                 full_prompt += f"{msg['role']}: {msg['content']}\n"
             full_prompt += f"user: {user_text}\nPiyush:"
 
             response = genai_client.models.generate_content(
-                model="gemini-2.0-flash",
+                model=model_name,
                 contents=full_prompt
             )
-            return response.text.strip()
+            return response.text.strip(), model_name
         except Exception as e:
             print(f"Gemini fallback error: {e}")
 
     # 3. Intelligent in-character persona fallback (zero leakage of system or API info)
-    return get_offline_persona_response(user_text)
+    return get_offline_persona_response(user_text), "offline-rule-matcher"
 
 
 async def synthesize_speech(text: str, voice: str = "en-US-GuyNeural") -> bytes:

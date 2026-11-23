@@ -24,15 +24,17 @@ def log_interaction(
     user_text: str,
     bot_response: str,
     timing_metrics: dict,
+    model_used: str = "unknown",
     client_ip: str = "unknown"
 ):
     """
-    Silently records user questions, bot responses, and stage-by-stage timings in JSONL format.
+    Silently records user questions, bot responses, model used, and stage-by-stage timings in JSONL format.
     """
     try:
         entry = {
             "timestamp": datetime.utcnow().isoformat() + "Z",
             "type": input_type,
+            "model_used": model_used,
             "user_query": user_text,
             "bot_response": bot_response,
             "latency_ms": timing_metrics,
@@ -83,7 +85,7 @@ async def chat_text(req: TextChatRequest, request: Request):
 
     # 1. LLM Generation
     t_llm_start = time.time()
-    response_text = await services.generate_response(user_text, req.history)
+    response_text, model_name = await services.generate_response(user_text, req.history)
     llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
     # 2. TTS Generation
@@ -106,19 +108,21 @@ async def chat_text(req: TextChatRequest, request: Request):
         "total_ms": total_ms
     }
 
-    # Silently log interaction with timing metrics
+    # Silently log interaction with timing metrics & model name
     client_ip = request.client.host if request.client else "unknown"
     log_interaction(
         input_type="text",
         user_text=user_text,
         bot_response=response_text,
         timing_metrics=timing_metrics,
+        model_used=model_name,
         client_ip=client_ip
     )
 
     return {
         "user_message": user_text,
         "response_text": response_text,
+        "model_used": model_name,
         "audio_base64": audio_base64,
         "timings": timing_metrics
     }
@@ -162,7 +166,7 @@ async def chat_voice(
 
     # 2. LLM response in Piyush's persona
     t_llm_start = time.time()
-    response_text = await services.generate_response(user_transcript, history)
+    response_text, model_name = await services.generate_response(user_transcript, history)
     llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
     # 3. Text to Speech
@@ -183,19 +187,21 @@ async def chat_voice(
         "total_ms": total_ms
     }
 
-    # Silently log interaction with timing metrics
+    # Silently log interaction with timing metrics & model name
     client_ip = request.client.host if request.client else "unknown"
     log_interaction(
         input_type="voice",
         user_text=user_transcript,
         bot_response=response_text,
         timing_metrics=timing_metrics,
+        model_used=model_name,
         client_ip=client_ip
     )
 
     return {
         "user_transcript": user_transcript,
         "response_text": response_text,
+        "model_used": model_name,
         "audio_base64": audio_base64,
         "timings": timing_metrics
     }
