@@ -19,9 +19,15 @@ LOGS_DIR = os.path.join(os.path.dirname(__file__), "conversations")
 os.makedirs(LOGS_DIR, exist_ok=True)
 CONVO_LOG_FILE = os.path.join(LOGS_DIR, "logs.jsonl")
 
-def log_interaction(input_type: str, user_text: str, bot_response: str, client_ip: str = "unknown"):
+def log_interaction(
+    input_type: str,
+    user_text: str,
+    bot_response: str,
+    timing_metrics: dict,
+    client_ip: str = "unknown"
+):
     """
-    Silently records user questions and bot responses in JSONL format for later inspection/evaluation.
+    Silently records user questions, bot responses, and stage-by-stage timings in JSONL format.
     """
     try:
         entry = {
@@ -29,6 +35,7 @@ def log_interaction(input_type: str, user_text: str, bot_response: str, client_i
             "type": input_type,
             "user_query": user_text,
             "bot_response": bot_response,
+            "latency_ms": timing_metrics,
             "ip": client_ip
         }
         with open(CONVO_LOG_FILE, "a", encoding="utf-8") as f:
@@ -67,30 +74,53 @@ async def health_check():
 async def chat_text(req: TextChatRequest, request: Request):
     """
     Direct text input endpoint (e.g. when browser Web Speech API transcribes live).
-    Returns text response + synthesized audio.
+    Returns text response + synthesized audio with stage timings.
     """
+    start_total = time.time()
     user_text = req.message.strip()
     if not user_text:
         raise HTTPException(status_code=400, detail="Empty message")
 
+    # 1. LLM Generation
+    t_llm_start = time.time()
     response_text = await services.generate_response(user_text, req.history)
+    llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
-    # Silently log interaction
-    client_ip = request.client.host if request.client else "unknown"
-    log_interaction(input_type="text", user_text=user_text, bot_response=response_text, client_ip=client_ip)
-
+    # 2. TTS Generation
     audio_base64 = None
+    tts_ms = 0.0
     if req.use_tts:
+        t_tts_start = time.time()
         try:
             audio_bytes = await services.synthesize_speech(response_text)
             audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
         except Exception as e:
             print(f"TTS error during chat-text: {e}")
+        tts_ms = round((time.time() - t_tts_start) * 1000, 2)
+
+    total_ms = round((time.time() - start_total) * 1000, 2)
+    timing_metrics = {
+        "stt_ms": 0.0,
+        "llm_ms": llm_ms,
+        "tts_ms": tts_ms,
+        "total_ms": total_ms
+    }
+
+    # Silently log interaction with timing metrics
+    client_ip = request.client.host if request.client else "unknown"
+    log_interaction(
+        input_type="text",
+        user_text=user_text,
+        bot_response=response_text,
+        timing_metrics=timing_metrics,
+        client_ip=client_ip
+    )
 
     return {
         "user_message": user_text,
         "response_text": response_text,
-        "audio_base64": audio_base64
+        "audio_base64": audio_base64,
+        "timings": timing_metrics
     }
 
 @app.post("/api/chat-voice")
@@ -103,8 +133,9 @@ async def chat_voice(
     """
     Full audio voice endpoint: receives recorded audio blob.
     Uses Whisper for STT (falling back to client_transcript if provided),
-    runs LLM in persona, then synthesizes speech audio.
+    runs LLM in persona, then synthesizes speech audio with stage timings.
     """
+    start_total = time.time()
     history = []
     if history_json:
         try:
@@ -117,6 +148,7 @@ async def chat_voice(
         raise HTTPException(status_code=400, detail="No audio data received")
 
     # 1. Speech to Text: Try Whisper, fallback to client_transcript if Whisper fails/unconfigured
+    t_stt_start = time.time()
     user_transcript = ""
     try:
         user_transcript = await services.transcribe_audio(audio_bytes, file.filename or "speech.webm")
@@ -125,23 +157,48 @@ async def chat_voice(
         if client_transcript and client_transcript.strip():
             user_transcript = client_transcript.strip()
         else:
-            # If both whisper and client transcript are empty, provide friendly fallback
             user_transcript = "Tell me about yourself"
+    stt_ms = round((time.time() - t_stt_start) * 1000, 2)
 
     # 2. LLM response in Piyush's persona
+    t_llm_start = time.time()
     response_text = await services.generate_response(user_transcript, history)
-
-    # Silently log interaction
-    client_ip = request.client.host if request.client else "unknown"
-    log_interaction(input_type="voice", user_text=user_transcript, bot_response=response_text, client_ip=client_ip)
+    llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
     # 3. Text to Speech
+    t_tts_start = time.time()
     audio_base64 = None
     try:
         audio_out = await services.synthesize_speech(response_text)
         audio_base64 = base64.b64encode(audio_out).decode("utf-8")
     except Exception as e:
         print(f"TTS synthesis error: {e}")
+    tts_ms = round((time.time() - t_tts_start) * 1000, 2)
+
+    total_ms = round((time.time() - start_total) * 1000, 2)
+    timing_metrics = {
+        "stt_ms": stt_ms,
+        "llm_ms": llm_ms,
+        "tts_ms": tts_ms,
+        "total_ms": total_ms
+    }
+
+    # Silently log interaction with timing metrics
+    client_ip = request.client.host if request.client else "unknown"
+    log_interaction(
+        input_type="voice",
+        user_text=user_transcript,
+        bot_response=response_text,
+        timing_metrics=timing_metrics,
+        client_ip=client_ip
+    )
+
+    return {
+        "user_transcript": user_transcript,
+        "response_text": response_text,
+        "audio_base64": audio_base64,
+        "timings": timing_metrics
+    }
 
     return {
         "user_transcript": user_transcript,
