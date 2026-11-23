@@ -224,29 +224,29 @@ async def chat_voice(
         "audio_base64": audio_base64
     }
 
-# Serve the static UI directly at /app
-@app.get("/app", response_class=HTMLResponse)
-async def serve_direct_app():
+# Simple clean Gradio Block with demo.load callback or custom mount
+with gr.Blocks(title="Piyush Mourya - AI Voice Twin") as demo:
+    # Use gr.HTML with iframe loading the internal static app with full permissions
+    gr.HTML(
+        """
+        <iframe 
+            src="/static/index.html" 
+            allow="microphone; autoplay" 
+            style="width: 100%; height: 95vh; border: none; border-radius: 12px; background: #0b0f19;">
+        </iframe>
+        """
+    )
+
+app = gr.mount_gradio_app(app, demo, path="/gradio")
+
+# Direct route for root so HF Spaces iframe loader always receives valid HTML
+@app.get("/", response_class=HTMLResponse)
+async def root_page():
     index_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
     if os.path.exists(index_path):
         with open(index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="<h1>App loading...</h1>")
-
-# Mount static folder for assets
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-if not os.path.exists(static_dir):
-    os.makedirs(static_dir, exist_ok=True)
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
-
-# Create Gradio demo serving an interactive iframe with full permissions (scripts, microphone, autoplay)
-with gr.Blocks(title="Piyush Mourya - AI Voice Twin", head='<meta name="viewport" content="width=device-width, initial-scale=1.0">') as demo:
-    gr.HTML(
-        '<iframe src="/app" allow="microphone; autoplay; clipboard-write;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" style="position:fixed; top:0; left:0; width:100vw; height:100vh; border:none; z-index:999999;"></iframe>'
-    )
-
-# Mount FastAPI app onto Gradio at root
-app = gr.mount_gradio_app(app, demo, path="/")
 
 if __name__ == "__main__":
     demo.launch(server_name="0.0.0.0", server_port=7860)
