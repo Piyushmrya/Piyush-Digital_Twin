@@ -171,14 +171,18 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
         for gemini_model in ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]:
             try:
                 full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation Context:\n"
-                for msg in conversation_history[-8:]:
+                for msg in conversation_history[-6:]:
                     speaker = "Interviewer" if msg["role"] == "user" else "Piyush"
                     full_prompt += f"{speaker}: {msg['content']}\n"
-                full_prompt += f"Interviewer: {user_text}\nPiyush (respond naturally, keeping conversational context in mind):"
+                full_prompt += f"Interviewer: {user_text}\nPiyush (respond directly to the Interviewer with 1-3 spoken sentences, zero fluff):"
 
                 response = genai_client.models.generate_content(
                     model=gemini_model,
-                    contents=full_prompt
+                    contents=full_prompt,
+                    config={
+                        "temperature": 0.5,
+                        "max_output_tokens": 160
+                    }
                 )
                 if response.text and response.text.strip():
                     return response.text.strip(), gemini_model
