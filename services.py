@@ -53,11 +53,17 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["life story", "background", "about you", "who are you", "introduce", "tell me about yourself"]):
         return "I graduated from IIT Bombay in Engineering Physics and transitioned straight into AI. In my previous role I built production enterprise agentic systems, and I love tinkering on open-source and side projects."
 
-    if any(k in text for k in ["superpower", "strength", "best at", "greatest strength"]):
-        return "My superpower is breaking down complex problems to first principles and quickly turning them into clean, reliable production code."
+    if any(k in text for k in ["superpower", "number one superpower"]):
+        return "My number one superpower is my drive for knowledge. I believe knowledge is power, so once I understand the fundamentals, I have the confidence to tackle any challenge and deliver on my promises."
 
-    if any(k in text for k in ["grow", "growth", "improve", "areas to grow", "weakness"]):
-        return "Right now, I'm focusing on ultra-low latency real-time voice agents, statistical evaluation harnesses, and distributed AI inference."
+    if any(k in text for k in ["strength", "best at", "greatest strength"]):
+        return "My biggest strength is that I'm confident, dependable, and I consistently deliver on what I promise."
+
+    if any(k in text for k in ["weakness", "flaw"]):
+        return "My biggest weakness is perfectionism. Wanting everything to be completely flawless can sometimes slow down shipping things that would be better off delivered earlier."
+
+    if any(k in text for k in ["grow", "growth", "improve", "areas to grow", "want to learn"]):
+        return "My top three growth areas are getting more hands-on with DevOps, diving deeper into low-level system design and low-latency databases, and learning more classical machine learning alongside Gen AI."
 
     if any(k in text for k in ["misconception", "coworker", "peers think", "misunderstand"]):
         return "People sometimes assume my physics and competitive math background makes me theoretical, but I'm actually an obsessive builder who loves shipping and writing solid tests."
