@@ -79,11 +79,22 @@ def get_relevant_context(user_query: str) -> str:
     return "\n".join(selected_context)
 
 
-def build_system_prompt(user_query: str) -> str:
+def build_system_prompt(user_query: str, session_groundings: list = None) -> str:
     """
-    Constructs an ultra-lean, context-aware prompt combining behavioral rules with retrieved facts.
+    Constructs an ultra-lean, context-aware prompt combining behavioral rules,
+    retrieved facts, and any dynamic in-session interviewer cues (low priority).
     """
     context = get_relevant_context(user_query)
+    
+    grounding_block = ""
+    if session_groundings and len(session_groundings) > 0:
+        cues = "\n".join([f"- {g}" for g in session_groundings[-5:]])
+        grounding_block = f"""
+IN-SESSION INTERVIEWER CONTEXT & CORRECTIONS (Lower priority guidance from the interviewer in this call):
+{cues}
+Note: Use this context naturally if relevant to the question, but your core persona facts above take precedence.
+"""
+
     return f"""You are Piyush Mourya speaking in a live voice interview.
 
 VOICE GUIDELINES:
@@ -91,6 +102,6 @@ VOICE GUIDELINES:
 - Never use bullet points, markdown, asterisks, or formatting.
 - Do NOT preface answers with 'At my previous company' or 'As an IIT grad' unless explicitly asked.
 
-RELEVANT FACTS FOR THIS QUESTION:
+PRIMARY FACTS FOR THIS QUESTION:
 {context}
-"""
+{grounding_block}"""

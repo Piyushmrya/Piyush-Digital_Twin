@@ -70,6 +70,7 @@ app.add_middleware(
 class TextChatRequest(BaseModel):
     message: str
     history: Optional[List[Dict[str, str]]] = []
+    groundings: Optional[List[str]] = []
     use_tts: bool = True
 
 @app.get("/api/health")
@@ -110,9 +111,9 @@ async def chat_text(req: TextChatRequest, request: Request):
     if not user_text:
         raise HTTPException(status_code=400, detail="Empty message")
 
-    # 1. LLM Generation
+    # 1. LLM Generation with optional session groundings
     t_llm_start = time.time()
-    response_text, model_name = await services.generate_response(user_text, req.history)
+    response_text, model_name = await services.generate_response(user_text, req.history, req.groundings)
     llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
     # 2. TTS Generation
@@ -159,18 +160,26 @@ async def chat_voice(
     request: Request,
     file: UploadFile = File(...),
     history_json: Optional[str] = Form("[]"),
+    groundings_json: Optional[str] = Form("[]"),
     client_transcript: Optional[str] = Form(None)
 ):
     """
     Full audio voice endpoint: receives recorded audio blob.
     Uses Whisper for STT (falling back to client_transcript if provided),
-    runs LLM in persona, then synthesizes speech audio with stage timings.
+    runs LLM in persona with in-session groundings, then synthesizes speech audio.
     """
     start_total = time.time()
     history = []
     if history_json:
         try:
             history = json.loads(history_json)
+        except Exception:
+            pass
+
+    groundings = []
+    if groundings_json:
+        try:
+            groundings = json.loads(groundings_json)
         except Exception:
             pass
 
@@ -191,9 +200,9 @@ async def chat_voice(
             user_transcript = "Tell me about yourself"
     stt_ms = round((time.time() - t_stt_start) * 1000, 2)
 
-    # 2. LLM response in Piyush's persona
+    # 2. LLM response in Piyush's persona with dynamic groundings
     t_llm_start = time.time()
-    response_text, model_name = await services.generate_response(user_transcript, history)
+    response_text, model_name = await services.generate_response(user_transcript, history, groundings)
     llm_ms = round((time.time() - t_llm_start) * 1000, 2)
 
     # 3. Text to Speech

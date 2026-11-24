@@ -145,16 +145,23 @@ async def transcribe_audio(audio_bytes: bytes, filename: str = "audio.webm") -> 
     raise ValueError("No server-side STT API key configured.")
 
 
-async def generate_response(user_text: str, conversation_history: Optional[List[Dict[str, str]]] = None) -> tuple[str, str]:
+async def generate_response(
+    user_text: str,
+    conversation_history: Optional[List[Dict[str, str]]] = None,
+    session_groundings: Optional[List[str]] = None
+) -> tuple[str, str]:
     """
     Generates persona response using OpenAI (default) or Gemini fallback.
+    Takes user_text, conversation_history, and optional session_groundings.
     Returns (response_text, model_name).
     """
     if conversation_history is None:
         conversation_history = []
+    if session_groundings is None:
+        session_groundings = []
 
     # 1. Try OpenAI if key is present
-    system_prompt = build_system_prompt(user_text)
+    system_prompt = build_system_prompt(user_text, session_groundings)
     if openai_client:
         try:
             model_name = "gpt-4o-mini"
