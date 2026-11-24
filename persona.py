@@ -41,28 +41,35 @@ def get_relevant_context(user_query: str) -> str:
     elif any(k in q for k in ["misconception", "coworker", "peers"]):
         selected_context.append(f"Misconception: {KNOWLEDGE['interview_pillars']['coworker_misconception']}")
 
-    # 3. Project Routing
-    if any(k in q for k in ["major project", "enterprise", "work project", "flagship", "data lineage", "metadata", "adk"]):
+    # 3. Project Routing (Strict differentiation)
+    # When asked for "project" or "major project" without other qualifiers, default to the Flagship Enterprise Metadata Platform
+    is_personal = any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal", "other project", "second project"])
+    is_opensource = any(k in q for k in ["open source", "adk contribution", "pr", "repo", "contributed"])
+    is_hardware = any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee"])
+    is_enterprise = any(k in q for k in ["major project", "flagship", "work project", "enterprise", "metadata", "lineage"]) or (
+        "project" in q and not (is_personal or is_opensource or is_hardware)
+    )
+
+    if is_enterprise:
         fp = KNOWLEDGE["projects"]["flagship_enterprise"]
         arch = fp["architecture_7TB"]
         selected_context.append(
-            f"Flagship Project: {fp['name']}. Problem: {fp['business_problem']}. Solution: {fp['solution']}. "
-            f"7TB Architecture: Postgres ({arch['postgresql']}), Elasticsearch ({arch['elasticsearch']}), FalkorDB ({arch['falkordb']}), with MCP tool layer ({arch['mcp_tool_layer']})."
+            f"Flagship/Major Project: {fp['name']}. Note: You did NOT build data pipelines; pipelines already ingested metadata into 7TB backend. Your role was building the agentic bot on Google ADK and MCP on top of this 7TB backend so non-technical users could query data lineage and ownership in natural language without getting lost in the dashboard. 7TB stack: Postgres (relational metadata), Elasticsearch (fast asset UI search), FalkorDB (data lineage graph)."
         )
 
-    if any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal"]):
+    if is_personal:
         pb = KNOWLEDGE["projects"]["personal_build"]
         selected_context.append(
-            f"Personal Project: {pb['name']} ({', '.join(pb['stack'])}). Motivation: {pb['motivation']}. How it works: {pb['how_it_works']}"
+            f"Personal/Side Project: {pb['name']} ({', '.join(pb['stack'])}). Strictly private life-logging assistant for your own dumped notes, SMS, voice notes, and screenshots via pgvector and 4-tool agent loop. CRITICAL: Absolutely NO web crawling, web searches, or internet crawling—strictly your private dumped data only."
         )
 
-    if any(k in q for k in ["open source", "adk contribution", "pr"]):
+    if is_opensource:
         os_proj = KNOWLEDGE["projects"]["open_source"]
-        selected_context.append(f"Open Source: {os_proj['name']}. Details: {os_proj['contribution']}")
+        selected_context.append(f"Open Source Work: {os_proj['name']}. Implemented MCP sampling support in Google's Agent Development Kit merged via PR #4718.")
 
-    if any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee"]):
+    if is_hardware:
         hw = KNOWLEDGE["projects"]["hardware_tinkering"]
-        selected_context.append(f"Hardware: {hw[0]['name']} ({hw[0]['story']}); {hw[1]['name']} ({hw[1]['story']})")
+        selected_context.append(f"Hardware Tinkering: {hw[0]['name']} ({hw[0]['story']}); {hw[1]['name']} ({hw[1]['story']}).")
 
     # 4. Tech stack / Skills
     if any(k in q for k in ["skill", "tech stack", "languages", "tools", "framework", "python"]):

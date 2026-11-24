@@ -7,12 +7,16 @@
       "degree": "B.Tech in Engineering Physics",
       "institute": "IIT Bombay",
       "year": "2020-2024",
-      "foundation": "First-principles mathematical physics, statistical mechanics, and competitive mathematics (2000+ rating)."
+      "foundation": "First-principles thinking, problem solving, mathematical physics, statistical mechanics"
     },
     "lifestyle": {
       "diet": "100% vegetarian",
       "fitness": "Regular gym workouts and staying healthy",
-      "hobbies": ["Dancing", "Tinkering with hardware electronics", "Tracking tech trends, internet memes, and global politics"]
+      "hobbies": [
+        "Dancing",
+        "Tinkering with hardware electronics",
+        "Tracking tech trends, internet memes, and global politics"
+      ]
     }
   },
   "interview_pillars": {
@@ -26,9 +30,17 @@
   "projects": {
     "flagship_enterprise": {
       "name": "Enterprise Metadata Query Platform",
-      "frameworks": ["Google ADK", "MCP (Model Context Protocol)", "PostgreSQL", "Elasticsearch", "FalkorDB (Redis Graph)"],
-      "business_problem": "B2B enterprise clients had vast metadata scattered across 20 to 30+ separate systems (Power BI, SAP HANA, SAP ERP, ADLS). A crowded dashboard made it nearly impossible for non-technical users to find asset lineage, ownership, or redundancy.",
-      "solution": "Architected an agentic natural language query bot on Google ADK and MCP sitting right on top of the dashboard. Users ask questions in plain English and get instant answers with direct deep-links back into the dashboard.",
+      "frameworks": [
+        "Google ADK",
+        "MCP (Model Context Protocol)",
+        "PostgreSQL",
+        "Elasticsearch",
+        "FalkorDB (Redis Graph)",
+        "FastAPI",
+        "LangGraph"
+      ],
+      "business_problem": "B2B enterprise clients had vast metadata already unified and ingested from 20 to 30+ separate systems into a 7TB backend, but the dashboard was too crowded and complex for non-technical users to easily check data lineage, ownership, or redundancy.",
+      "solution": "Built the agentic natural-language query bot and MCP tool layer sitting on top of that existing 7TB backend, so users can ask questions in plain English and get instant answers with direct links back to the dashboard. Did NOT build the data ingestion pipelines itself.",
       "architecture_7TB": {
         "postgresql": "Stored the core bulk relational metadata records and asset attributes.",
         "elasticsearch": "Used for lightning-fast search of asset IDs, parent IDs, system instances, and popular UI assets.",
@@ -38,9 +50,14 @@
     },
     "personal_build": {
       "name": "OneSearchGo",
-      "stack": ["FastAPI", "PostgreSQL", "pgvector", "Docker"],
-      "motivation": "I do daily journaling and diary writing, but found it difficult to remember and piece together events across SMS, voice dumps, call logs, and screenshots.",
-      "how_it_works": "A personal life-logging and retrieval system with a 4-tool self-correcting agentic loop that pulls from semantic vector search and SQL aggregation to retrieve memories instantly."
+      "stack": [
+        "FastAPI",
+        "PostgreSQL",
+        "pgvector",
+        "Docker"
+      ],
+      "motivation": "I do daily journaling and life-logging, but it was really difficult to piece together personal information across voice dumps, call logs, SMS, and screenshots.",
+      "how_it_works": "A strictly private personal life-logging search engine. Users dump their own SMS, voice notes, screenshots, and logs into a local pgvector store, and a 4-tool agentic loop does fast semantic and SQL retrieval. CRITICAL: It does ZERO web crawling or web searches—it is 100% grounded on personal dumped data only."
     },
     "open_source": {
       "name": "Google Agent Development Kit (ADK)",
@@ -58,9 +75,37 @@
     ]
   },
   "technical_skills": {
-    "languages": ["Python (primary)", "C++", "SQL"],
-    "agentic_ai": ["Google ADK", "LangGraph", "CrewAI", "Model Context Protocol (MCP)"],
-    "ai_ml_core": ["Transformers", "LLMs", "Generative AI", "RAG", "Classical Machine Learning", "Deep Learning"],
-    "software_and_cloud": ["System Design", "DSA", "AWS Cloud Coursework", "FastAPI", "Docker", "Kafka microservices", "PostgreSQL/pgvector", "Elasticsearch", "FalkorDB", "Redis", "FAISS"]
+    "languages": [
+      "Python (primary)",
+      "C++",
+      "SQL"
+    ],
+    "agentic_ai": [
+      "Google ADK",
+      "LangGraph",
+      "CrewAI",
+      "Model Context Protocol (MCP)"
+    ],
+    "ai_ml_core": [
+      "Transformers",
+      "LLMs",
+      "Generative AI",
+      "RAG",
+      "Classical Machine Learning",
+      "Deep Learning"
+    ],
+    "software_and_cloud": [
+      "System Design",
+      "DSA",
+      "AWS Cloud Coursework",
+      "FastAPI",
+      "Docker",
+      "Kafka microservices",
+      "PostgreSQL/pgvector",
+      "Elasticsearch",
+      "FalkorDB",
+      "Redis",
+      "FAISS"
+    ]
   }
 }
