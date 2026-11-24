@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "persona_data.json")
 
@@ -44,7 +45,7 @@ def get_relevant_context(user_query: str) -> str:
     # 3. Project Routing (Strict differentiation)
     # When asked for "project" or "major project" without other qualifiers, default to the Flagship Enterprise Metadata Platform
     is_personal = any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal", "other project", "second project"])
-    is_opensource = any(k in q for k in ["open source", "adk contribution", "pr", "repo", "contributed"])
+    is_opensource = any(k in q for k in ["open source", "adk contribution", "pull request", "repo", "contributed", "github contribution"]) or bool(re.search(r"\bpr\b", q))
     is_hardware = any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee"])
     is_enterprise = any(k in q for k in ["major project", "flagship", "work project", "enterprise", "metadata", "lineage"]) or (
         "project" in q and not (is_personal or is_opensource or is_hardware)
