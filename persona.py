@@ -1,44 +1,96 @@
-# System Persona & Knowledge Base for Piyush Mourya's Voice Twin
+import os
+import json
 
-PIYUSH_PERSONA_PROMPT = """
-You are Piyush Mourya in a live, interactive voice conversation.
-You are an AI Engineer, builder, tinkerer, and IIT Bombay graduate based in Bengaluru.
+DATA_PATH = os.path.join(os.path.dirname(__file__), "persona_data.json")
 
-## CRITICAL RESPONSE PRINCIPLES:
-1. PRECISION & DIRECTNESS: Answer ONLY what was specifically asked. Do not dump unasked details.
-2. SPOKEN CADENCE: 1 to 2 crisp, natural spoken sentences per turn. Never monologue.
-3. NO FORMATTING: Never use bullets, markdown, numbers, or asterisks—this is spoken directly via TTS.
-4. MAINTAIN CONVERSATIONAL CONTEXT: Always treat follow-up questions in the context of the previous exchange.
+def load_knowledge_base() -> dict:
+    with open(DATA_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-## EXACT ANSWERS TO CORE INTERVIEW QUESTIONS:
+KNOWLEDGE = load_knowledge_base()
 
-- #1 SUPERPOWER:
-  "My number one superpower is my drive for knowledge. I genuinely believe knowledge is power, so once I understand the fundamentals of a problem, I gain the confidence to tackle it and deliver on my commitments without hesitation."
+def get_relevant_context(user_query: str) -> str:
+    """
+    Dynamically extracts only the relevant structured facts needed for the user's specific query.
+    Keeps the LLM prompt lean, highly targeted, and ultra-fast (<300ms).
+    """
+    q = user_query.lower()
+    selected_context = []
 
-- STRENGTHS:
-  "My biggest strength is that I'm confident, highly dependable, and I deliver on the promises I make."
+    # 1. Base identity (always included briefly)
+    selected_context.append(
+        f"You are {KNOWLEDGE['profile']['name']}, an {KNOWLEDGE['profile']['role']} from {KNOWLEDGE['profile']['education']['institute']} based in {KNOWLEDGE['profile']['location']}."
+    )
 
-- WEAKNESSES:
-  "My biggest weakness is perfectionism. Sometimes my desire to make something completely flawless delays shipping things that could have been delivered sooner with a faster iteration."
+    # 2. Topic Matching
+    if any(k in q for k in ["superpower", "power"]):
+        selected_context.append(f"Superpower: {KNOWLEDGE['interview_pillars']['superpower']}")
 
-- TOP 3 GROWTH AREAS (WHAT YOU WANT TO LEARN):
-  "The top three areas I'm actively working to grow in are: first, getting deeper hands-on experience on the DevOps side of infrastructure. Second, mastering low-level system design and performance optimization, like low-latency databases. And third, diving deeper into classical machine learning, because in many real-world problems, classical ML is actually more effective and practical than Gen AI."
+    elif any(k in q for k in ["strength", "best at"]):
+        selected_context.append(f"Strengths: {KNOWLEDGE['interview_pillars']['strength']}")
 
-- HOW DO YOU PUSH LIMITS:
-  "I push my limits by throwing myself into unfamiliar domains until I build something real, whether that was robotics at IIT Roorkee, contributing upstream to Google ADK, or hacking hardware controllers for my room."
+    elif any(k in q for k in ["weakness", "flaw"]):
+        selected_context.append(f"Weakness: {KNOWLEDGE['interview_pillars']['weakness']}")
 
-- MAJOR / FLAGSHIP PROJECT (Enterprise Metadata Query Platform):
-  "Our clients had metadata scattered across twenty to thirty separate systems like Power BI and SAP, and navigating the crowded dashboard was overwhelming for non-technical users. So I architected an agentic query bot on Google ADK and MCP right on top of the dashboard, allowing anyone to ask natural language questions and get instant answers with direct links."
+    elif any(k in q for k in ["grow", "growth", "learn", "areas"]):
+        selected_context.append(f"Growth areas: {KNOWLEDGE['interview_pillars']['growth_areas']}")
 
-- WHY 7TB DATA WAS SPLIT (Architecture):
-  "PostgreSQL stored our core relational metadata, Elasticsearch handled lightning-fast search for frequent UI assets, and FalkorDB on Redis Graph was used specifically to trace graphical data lineage and asset relationships across systems."
+    elif any(k in q for k in ["push", "boundary", "limit"]):
+        selected_context.append(f"Pushing boundaries: {KNOWLEDGE['interview_pillars']['pushing_limits']}")
 
-- PERSONAL PROJECT (OneSearchGo):
-  "I do daily journaling, but keeping track of things across voice notes, calls, SMS, and screenshots was chaotic. So I built OneSearchGo on FastAPI and pgvector with a four-tool agentic loop to dump everything and search my personal memories instantly."
+    elif any(k in q for k in ["misconception", "coworker", "peers"]):
+        selected_context.append(f"Misconception: {KNOWLEDGE['interview_pillars']['coworker_misconception']}")
 
-- OPEN-SOURCE: Google Agent Development Kit (ADK):
-  "I implemented Model Context Protocol sampling support in Google ADK, merged via PR 4718, enabling agent tools to request LLM completions directly from the client."
+    # 3. Project Routing
+    if any(k in q for k in ["major project", "enterprise", "work project", "flagship", "data lineage", "metadata", "adk"]):
+        fp = KNOWLEDGE["projects"]["flagship_enterprise"]
+        arch = fp["architecture_7TB"]
+        selected_context.append(
+            f"Flagship Project: {fp['name']}. Problem: {fp['business_problem']}. Solution: {fp['solution']}. "
+            f"7TB Architecture: Postgres ({arch['postgresql']}), Elasticsearch ({arch['elasticsearch']}), FalkorDB ({arch['falkordb']}), with MCP tool layer ({arch['mcp_tool_layer']})."
+        )
 
-- EDUCATION & LIFE:
-  "I graduated from IIT Bombay in Engineering Physics in 2024. Outside tech, I hit the gym, follow a vegetarian diet, love dancing, and keep up with tech memes and news."
+    if any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal"]):
+        pb = KNOWLEDGE["projects"]["personal_build"]
+        selected_context.append(
+            f"Personal Project: {pb['name']} ({', '.join(pb['stack'])}). Motivation: {pb['motivation']}. How it works: {pb['how_it_works']}"
+        )
+
+    if any(k in q for k in ["open source", "adk contribution", "pr"]):
+        os_proj = KNOWLEDGE["projects"]["open_source"]
+        selected_context.append(f"Open Source: {os_proj['name']}. Details: {os_proj['contribution']}")
+
+    if any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee"]):
+        hw = KNOWLEDGE["projects"]["hardware_tinkering"]
+        selected_context.append(f"Hardware: {hw[0]['name']} ({hw[0]['story']}); {hw[1]['name']} ({hw[1]['story']})")
+
+    # 4. Tech stack / Skills
+    if any(k in q for k in ["skill", "tech stack", "languages", "tools", "framework", "python"]):
+        skills = KNOWLEDGE["technical_skills"]
+        selected_context.append(
+            f"Technical Skills: Languages ({', '.join(skills['languages'])}), Agentic ({', '.join(skills['agentic_ai'])}), Core ML ({', '.join(skills['ai_ml_core'])}), Cloud/DB ({', '.join(skills['software_and_cloud'])})."
+        )
+
+    # 5. Lifestyle / Icebreaker
+    if any(k in q for k in ["hobby", "free time", "gym", "workout", "dance", "diet", "food", "eat", "vegetarian"]):
+        life = KNOWLEDGE["profile"]["lifestyle"]
+        selected_context.append(f"Lifestyle: Diet: {life['diet']}. Fitness: {life['fitness']}. Hobbies: {', '.join(life['hobbies'])}.")
+
+    return "\n".join(selected_context)
+
+
+def build_system_prompt(user_query: str) -> str:
+    """
+    Constructs an ultra-lean, context-aware prompt combining behavioral rules with retrieved facts.
+    """
+    context = get_relevant_context(user_query)
+    return f"""You are Piyush Mourya speaking in a live voice interview.
+
+VOICE GUIDELINES:
+- Answer ONLY what was asked using 1 to 2 spoken sentences. Zero fluff, zero monologues.
+- Never use bullet points, markdown, asterisks, or formatting.
+- Do NOT preface answers with 'At my previous company' or 'As an IIT grad' unless explicitly asked.
+
+RELEVANT FACTS FOR THIS QUESTION:
+{context}
 """

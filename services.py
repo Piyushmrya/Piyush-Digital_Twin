@@ -32,7 +32,7 @@ if GEMINI_API_KEY:
     except Exception as e:
         print(f"Warning: Failed to initialize Gemini client: {e}")
 
-from persona import PIYUSH_PERSONA_PROMPT
+from persona import build_system_prompt, KNOWLEDGE
 
 
 def get_offline_persona_response(user_text: str) -> str:
@@ -154,10 +154,11 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
         conversation_history = []
 
     # 1. Try OpenAI if key is present
+    system_prompt = build_system_prompt(user_text)
     if openai_client:
         try:
             model_name = "gpt-4o-mini"
-            messages = [{"role": "system", "content": PIYUSH_PERSONA_PROMPT}]
+            messages = [{"role": "system", "content": system_prompt}]
             for msg in conversation_history[-6:]:  # Keep recent context
                 messages.append({"role": msg["role"], "content": msg["content"]})
             messages.append({"role": "user", "content": user_text})
@@ -165,8 +166,8 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
             response = openai_client.chat.completions.create(
                 model=model_name,
                 messages=messages,
-                temperature=0.7,
-                max_tokens=250
+                temperature=0.5,
+                max_tokens=150
             )
             return response.choices[0].message.content.strip(), model_name
         except Exception as e:
@@ -176,18 +177,18 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
     if genai_client:
         for gemini_model in ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]:
             try:
-                full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation Context:\n"
+                full_prompt = f"{system_prompt}\nRecent Conversation Context:\n"
                 for msg in conversation_history[-6:]:
                     speaker = "Interviewer" if msg["role"] == "user" else "Piyush"
                     full_prompt += f"{speaker}: {msg['content']}\n"
-                full_prompt += f"Interviewer: {user_text}\nPiyush (respond directly to the Interviewer with 1-3 spoken sentences, zero fluff):"
+                full_prompt += f"Interviewer: {user_text}\nPiyush (1 to 2 spoken sentences, zero fluff):"
 
                 response = genai_client.models.generate_content(
                     model=gemini_model,
                     contents=full_prompt,
                     config={
                         "temperature": 0.5,
-                        "max_output_tokens": 160
+                        "max_output_tokens": 150
                     }
                 )
                 if response.text and response.text.strip():

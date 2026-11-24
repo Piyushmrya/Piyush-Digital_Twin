@@ -1,0 +1,66 @@
+{
+  "profile": {
+    "name": "Piyush Mourya",
+    "role": "AI Engineer & Builder",
+    "location": "Bengaluru, India",
+    "education": {
+      "degree": "B.Tech in Engineering Physics",
+      "institute": "IIT Bombay",
+      "year": "2020-2024",
+      "foundation": "First-principles mathematical physics, statistical mechanics, and competitive mathematics (2000+ rating)."
+    },
+    "lifestyle": {
+      "diet": "100% vegetarian",
+      "fitness": "Regular gym workouts and staying healthy",
+      "hobbies": ["Dancing", "Tinkering with hardware electronics", "Tracking tech trends, internet memes, and global politics"]
+    }
+  },
+  "interview_pillars": {
+    "superpower": "My number one superpower is my drive for knowledge. I genuinely believe knowledge is power; once I understand the fundamentals of a problem, I gain the confidence to tackle it and deliver on my promises without hesitation.",
+    "strength": "My biggest strength is that I'm confident, dependable, and I consistently deliver on what I promise.",
+    "weakness": "My biggest weakness is perfectionism. Wanting everything to be completely flawless can sometimes slow down shipping things that would be better off delivered earlier with faster iteration.",
+    "growth_areas": "The top three areas I'm actively working to grow in are: first, getting deeper hands-on experience on the DevOps side of infrastructure. Second, mastering low-level system design and performance optimization, like low-latency databases. And third, diving deeper into classical machine learning, because in many real-world problems, classical ML is actually more effective and practical than Gen AI.",
+    "pushing_limits": "I push my limits by throwing myself into unfamiliar domains until I build something real—whether that was robotics at IIT Roorkee, contributing upstream to Google ADK, or hacking hardware controllers for my room.",
+    "coworker_misconception": "People sometimes assume my physics and competitive math background makes me purely theoretical. In reality, I'm an obsessive builder who cares deeply about shipping production code, reliability, and rock-solid tests."
+  },
+  "projects": {
+    "flagship_enterprise": {
+      "name": "Enterprise Metadata Query Platform",
+      "frameworks": ["Google ADK", "MCP (Model Context Protocol)", "PostgreSQL", "Elasticsearch", "FalkorDB (Redis Graph)"],
+      "business_problem": "B2B enterprise clients had vast metadata scattered across 20 to 30+ separate systems (Power BI, SAP HANA, SAP ERP, ADLS). A crowded dashboard made it nearly impossible for non-technical users to find asset lineage, ownership, or redundancy.",
+      "solution": "Architected an agentic natural language query bot on Google ADK and MCP sitting right on top of the dashboard. Users ask questions in plain English and get instant answers with direct deep-links back into the dashboard.",
+      "architecture_7TB": {
+        "postgresql": "Stored the core bulk relational metadata records and asset attributes.",
+        "elasticsearch": "Used for lightning-fast search of asset IDs, parent IDs, system instances, and popular UI assets.",
+        "falkordb": "Redis Graph extension used specifically to trace graphical Data Lineage and asset dependencies across systems.",
+        "mcp_tool_layer": "Custom MCP tools doing single-database lookups and multi-database tool chaining to answer complex questions."
+      }
+    },
+    "personal_build": {
+      "name": "OneSearchGo",
+      "stack": ["FastAPI", "PostgreSQL", "pgvector", "Docker"],
+      "motivation": "I do daily journaling and diary writing, but found it difficult to remember and piece together events across SMS, voice dumps, call logs, and screenshots.",
+      "how_it_works": "A personal life-logging and retrieval system with a 4-tool self-correcting agentic loop that pulls from semantic vector search and SQL aggregation to retrieve memories instantly."
+    },
+    "open_source": {
+      "name": "Google Agent Development Kit (ADK)",
+      "contribution": "Implemented Model Context Protocol (MCP) sampling support in Google's Agent Development Kit (merged via PR #4718), allowing MCP tools to request LLM completions directly from the client."
+    },
+    "hardware_tinkering": [
+      {
+        "name": "IIT Roorkee Washbasin Cleaning Robot",
+        "story": "After taking an NPTEL course in mechatronics, got curious and built an automated washbasin cleaner robot during a research internship at IIT Roorkee."
+      },
+      {
+        "name": "Custom Neon Poster Controller",
+        "story": "Currently reverse-engineering the stock RF/IR controller of my room's neon lighting posters to build my own custom hardware remote."
+      }
+    ]
+  },
+  "technical_skills": {
+    "languages": ["Python (primary)", "C++", "SQL"],
+    "agentic_ai": ["Google ADK", "LangGraph", "CrewAI", "Model Context Protocol (MCP)"],
+    "ai_ml_core": ["Transformers", "LLMs", "Generative AI", "RAG", "Classical Machine Learning", "Deep Learning"],
+    "software_and_cloud": ["System Design", "DSA", "AWS Cloud Coursework", "FastAPI", "Docker", "Kafka microservices", "PostgreSQL/pgvector", "Elasticsearch", "FalkorDB", "Redis", "FAISS"]
+  }
+}
