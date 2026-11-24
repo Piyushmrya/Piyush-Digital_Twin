@@ -13,49 +13,74 @@ KNOWLEDGE = load_knowledge_base()
 def get_relevant_context(user_query: str) -> str:
     """
     Dynamically extracts only the relevant structured facts needed for the user's specific query.
-    Keeps the LLM prompt lean, highly targeted, and ultra-fast (<300ms).
+    Keeps the LLM prompt lean, highly targeted, grounded, and ultra-fast (<300ms).
+    Evaluates topics independently to accurately answer single, compound, or architectural questions.
     """
     q = user_query.lower()
     selected_context = []
 
-    # 1. Base identity (always included briefly)
+    # 1. Base identity (compact baseline)
+    prof = KNOWLEDGE["profile"]
     selected_context.append(
-        f"You are {KNOWLEDGE['profile']['name']}, an {KNOWLEDGE['profile']['role']} from {KNOWLEDGE['profile']['education']['institute']} based in {KNOWLEDGE['profile']['location']}."
+        f"You are {prof['name']}, an {prof['role']} based in {prof['location']}."
     )
 
-    # 2. Topic Matching
-    if any(k in q for k in ["superpower", "power"]):
-        selected_context.append(f"Superpower: {KNOWLEDGE['interview_pillars']['superpower']}")
+    # 2. Self-Introduction / Elevator Pitch / Who are you
+    if any(k in q for k in ["about yourself", "who are you", "who r u", "introduce yourself", "tell me about yourself", "your background", "give me an intro", "who is piyush"]):
+        selected_context.append(f"Self Introduction: {prof['intro_summary']}")
 
-    elif any(k in q for k in ["strength", "best at"]):
-        selected_context.append(f"Strengths: {KNOWLEDGE['interview_pillars']['strength']}")
+    # 3. Education / IIT Bombay / Physics to AI Transition
+    if any(k in q for k in ["education", "college", "degree", "iit", "bombay", "physics", "b.tech", "study", "engineering physics", "math", "transition to ai", "switch to ai"]):
+        edu = prof["education"]
+        selected_context.append(
+            f"Education: {edu['degree']} from {edu['institute']} ({edu['year']}). Foundation: {edu['foundation']}. Transition to AI: {edu['transition_to_ai']}"
+        )
 
-    elif any(k in q for k in ["weakness", "flaw"]):
-        selected_context.append(f"Weakness: {KNOWLEDGE['interview_pillars']['weakness']}")
+    # 4. Current Employment / Company (only if asked)
+    if any(k in q for k in ["where do you work", "current company", "current employer", "genpact", "current job", "who do you work for", "which company"]):
+        selected_context.append(f"Current Employment: AI Engineer at {prof.get('current_company', 'Genpact')} in Bengaluru.")
 
-    elif any(k in q for k in ["grow", "growth", "learn", "areas"]):
-        selected_context.append(f"Growth areas: {KNOWLEDGE['interview_pillars']['growth_areas']}")
+    # 5. Core Interview Pillars (evaluated independently to support compound questions)
+    pillars = KNOWLEDGE["interview_pillars"]
+    if any(k in q for k in ["superpower", "super power", "special ability", "greatest asset", "#1 power"]):
+        selected_context.append(f"Superpower: {pillars['superpower']}")
 
-    elif any(k in q for k in ["push", "boundary", "limit"]):
-        selected_context.append(f"Pushing boundaries: {KNOWLEDGE['interview_pillars']['pushing_limits']}")
+    if any(k in q for k in ["strength", "best at", "good at", "strongest", "great at", "pros"]):
+        selected_context.append(f"Strengths: {pillars['strength']}")
 
-    elif any(k in q for k in ["misconception", "coworker", "peers"]):
-        selected_context.append(f"Misconception: {KNOWLEDGE['interview_pillars']['coworker_misconception']}")
+    if any(k in q for k in ["weakness", "flaw", "shortcoming", "cons", "areas to improve", "struggle", "bad at"]):
+        selected_context.append(f"Weakness: {pillars['weakness']}")
 
-    # 3. Project Routing (Strict differentiation)
-    # When asked for "project" or "major project" without other qualifiers, default to the Flagship Enterprise Metadata Platform
-    is_personal = any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal", "other project", "second project"])
-    is_opensource = any(k in q for k in ["open source", "adk contribution", "pull request", "repo", "contributed", "github contribution"]) or bool(re.search(r"\bpr\b", q))
-    is_hardware = any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee"])
-    is_enterprise = any(k in q for k in ["major project", "flagship", "work project", "enterprise", "metadata", "lineage"]) or (
+    if any(k in q for k in ["growth", "grow", "improve", "areas of improvement", "learn", "upskill", "top 3 growth", "development"]):
+        selected_context.append(f"Growth areas: {pillars['growth_areas']}")
+
+    if any(k in q for k in ["push", "boundary", "limit", "challenge", "tough", "difficult", "failure", "mistake"]):
+        selected_context.append(f"Pushing boundaries: {pillars['pushing_limits']}")
+
+    if any(k in q for k in ["misconception", "misunderstand", "coworker", "peer", "colleague", "people think"]):
+        selected_context.append(f"Misconception: {pillars['coworker_misconception']}")
+
+    # 6. Specific Architecture & Database rationale questions (e.g., "Why FalkorDB?", "Why Elasticsearch?")
+    fp = KNOWLEDGE["projects"]["flagship_enterprise"]
+    arch = fp["architecture_7TB"]
+    if any(k in q for k in ["falkordb", "redis graph", "graph db", "lineage graph"]):
+        selected_context.append(f"Why FalkorDB: {arch['falkordb']}")
+    if any(k in q for k in ["elasticsearch", "fast search", "ui search"]):
+        selected_context.append(f"Why Elasticsearch: {arch['elasticsearch']}")
+    if any(k in q for k in ["postgres", "postgresql", "relational"]):
+        selected_context.append(f"Role of Postgres: {arch['postgresql']}")
+
+    # 7. Project Routing (Strict differentiation & grounding)
+    is_personal = any(k in q for k in ["personal", "side project", "onesearchgo", "diary", "journal", "life log", "other project", "second project"])
+    is_opensource = any(k in q for k in ["open source", "adk contribution", "google adk", "pull request", "repo", "contributed", "github contribution"]) or bool(re.search(r"\bpr\b", q))
+    is_hardware = any(k in q for k in ["robot", "neon", "hardware", "tinker", "roorkee", "cleaner", "controller", "iot"])
+    is_enterprise = any(k in q for k in ["major project", "flagship", "work project", "enterprise", "metadata", "lineage", "7tb", "power bi", "sap", "dashboard bot"]) or (
         "project" in q and not (is_personal or is_opensource or is_hardware)
     )
 
     if is_enterprise:
-        fp = KNOWLEDGE["projects"]["flagship_enterprise"]
-        arch = fp["architecture_7TB"]
         selected_context.append(
-            f"Flagship/Major Project: {fp['name']}. Note: You did NOT build data pipelines; pipelines already ingested metadata into 7TB backend. Your role was building the agentic bot on Google ADK and MCP on top of this 7TB backend so non-technical users could query data lineage and ownership in natural language without getting lost in the dashboard. 7TB stack: Postgres (relational metadata), Elasticsearch (fast asset UI search), FalkorDB (data lineage graph)."
+            f"Flagship/Major Project: {fp['name']}. Note: You did NOT build data pipelines; pipelines already ingested metadata into 7TB backend. Your role was building the agentic bot on Google ADK and MCP on top of this 7TB backend so non-technical users could query data lineage and ownership in natural language without getting lost in the dashboard. 7TB stack: Postgres ({arch['postgresql']}), Elasticsearch ({arch['elasticsearch']}), FalkorDB ({arch['falkordb']}), MCP layer ({arch['mcp_tool_layer']})."
         )
 
     if is_personal:
@@ -72,15 +97,15 @@ def get_relevant_context(user_query: str) -> str:
         hw = KNOWLEDGE["projects"]["hardware_tinkering"]
         selected_context.append(f"Hardware Tinkering: {hw[0]['name']} ({hw[0]['story']}); {hw[1]['name']} ({hw[1]['story']}).")
 
-    # 4. Tech stack / Skills
-    if any(k in q for k in ["skill", "tech stack", "languages", "tools", "framework", "python"]):
+    # 8. Technical Skills / Tech Stack / Tools / Databases
+    if any(k in q for k in ["skill", "tech stack", "languages", "tools", "framework", "python", "c++", "sql", "database", "backend", "fastapi", "docker", "kafka", "langgraph", "crewai", "vector", "mcp"]):
         skills = KNOWLEDGE["technical_skills"]
         selected_context.append(
-            f"Technical Skills: Languages ({', '.join(skills['languages'])}), Agentic ({', '.join(skills['agentic_ai'])}), Core ML ({', '.join(skills['ai_ml_core'])}), Cloud/DB ({', '.join(skills['software_and_cloud'])})."
+            f"Technical Skills: Languages ({', '.join(skills['languages'])}), Agentic AI ({', '.join(skills['agentic_ai'])}), Core ML ({', '.join(skills['ai_ml_core'])}), Cloud/Backend/DB ({', '.join(skills['software_and_cloud'])})."
         )
 
-    # 5. Lifestyle / Icebreaker
-    if any(k in q for k in ["hobby", "free time", "gym", "workout", "dance", "diet", "food", "eat", "vegetarian"]):
+    # 9. Lifestyle / Icebreaker / Personal Interests
+    if any(k in q for k in ["hobby", "hobbies", "free time", "gym", "workout", "fitness", "dance", "dancing", "diet", "food", "eat", "vegetarian", "outside work", "weekend", "weekends", "fun", "interest"]):
         life = KNOWLEDGE["profile"]["lifestyle"]
         selected_context.append(f"Lifestyle: Diet: {life['diet']}. Fitness: {life['fitness']}. Hobbies: {', '.join(life['hobbies'])}.")
 

@@ -2,12 +2,15 @@
   "profile": {
     "name": "Piyush Mourya",
     "role": "AI Engineer & Builder",
+    "current_company": "Genpact",
     "location": "Bengaluru, India",
+    "intro_summary": "I'm Piyush, an AI engineer and builder based in Bengaluru, focusing heavily on agentic AI architectures and LLM systems. I graduated from IIT Bombay in Engineering Physics, and I enjoy building production software from mathematical first-principles.",
     "education": {
       "degree": "B.Tech in Engineering Physics",
       "institute": "IIT Bombay",
       "year": "2020-2024",
-      "foundation": "First-principles thinking, problem solving, mathematical physics, statistical mechanics"
+      "foundation": "First-principles thinking, problem solving, mathematical physics, statistical mechanics, competitive math (2000+ rating)",
+      "transition_to_ai": "Engineering Physics at IIT Bombay built my core foundation in mathematical modeling and statistical physics, which naturally transitioned into designing complex agentic workflows and AI system architectures."
     },
     "lifestyle": {
       "diet": "100% vegetarian",
