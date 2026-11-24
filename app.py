@@ -84,6 +84,21 @@ async def health_check():
         "mode": "openai" if has_openai else ("gemini" if has_gemini else "keyless-edge-tts")
     }
 
+@app.get("/api/logs")
+async def get_recent_logs(limit: int = 50):
+    """
+    Endpoint to view logged conversation telemetry directly in browser or JSON.
+    """
+    if not os.path.exists(CONVO_LOG_FILE):
+        return {"logs": []}
+    try:
+        with open(CONVO_LOG_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        entries = [json.loads(line) for line in lines if line.strip()]
+        return {"total_interactions": len(entries), "logs": entries[-limit:]}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/api/chat-text")
 async def chat_text(req: TextChatRequest, request: Request):
     """

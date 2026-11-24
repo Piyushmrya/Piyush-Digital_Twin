@@ -27,7 +27,8 @@ genai_client = None
 if GEMINI_API_KEY:
     try:
         from google import genai
-        genai_client = genai.Client(api_key=GEMINI_API_KEY)
+        # Explicitly set api_version='v1beta' so flash models are recognized on Linux/Render
+        genai_client = genai.Client(api_key=GEMINI_API_KEY, http_options={"api_version": "v1beta"})
     except Exception as e:
         print(f"Warning: Failed to initialize Gemini client: {e}")
 
@@ -167,7 +168,7 @@ async def generate_response(user_text: str, conversation_history: Optional[List[
 
     # 2. Try Gemini fallback if present
     if genai_client:
-        for gemini_model in ["gemini-flash-lite-latest", "gemini-flash-latest"]:
+        for gemini_model in ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-flash-lite-latest", "gemini-flash-latest"]:
             try:
                 full_prompt = f"{PIYUSH_PERSONA_PROMPT}\n\nRecent Conversation:\n"
                 for msg in conversation_history[-4:]:
