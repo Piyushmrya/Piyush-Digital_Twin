@@ -75,9 +75,9 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["company name", "which company", "name of company", "where did you work", "employer"]):
         return "I previously worked as an AI Engineer at Genpact, building enterprise agent systems."
 
-    # Major enterprise work (avoids naming company explicitly)
-    if any(k in text for k in ["major project", "work project", "enterprise", "at work", "previous company", "last role"]):
-        return "At my previous company, I architected a production metadata query platform on Google ADK and MCP. It gives natural language access to 7TB of enterprise data across PostgreSQL, Elasticsearch, and FalkorDB at over 30K queries daily."
+    # Day to day work & Genpact metadata platform
+    if any(k in text for k in ["your work", "day to day", "genpact", "at work", "daily work", "what do you do", "metadata platform", "major project", "work project", "enterprise"]):
+        return "At Genpact, I work on an enterprise metadata platform for B2B clients. Day-to-day, I work closely with business users to understand where they get stuck, debug query issues, and build an agentic natural-language query bot with custom MCP tools on our 7TB data backend so users get instant lineage and ownership answers without wading through complex dashboards."
 
     # Open source contribution apart from company
     if any(k in text for k in ["open source", "adk repo", "apart from work", "google adk contribution", "contributed"]):
@@ -87,9 +87,9 @@ def get_offline_persona_response(user_text: str) -> str:
     if any(k in text for k in ["personal project", "onesearchgo", "side project", "built for yourself", "diary", "side build"]):
         return "I built OneSearchGo because I write daily journals and notes, but found it really hard to remember and piece together everything across SMS, voice dumps, screenshots, and logs. So I built an AI agent on FastAPI and pgvector where I dump all my daily data and retrieve anything instantly through semantic search and SQL."
 
-    # Hobbies & lifestyle
-    if any(k in text for k in ["hobby", "hobbies", "dance", "dancing", "workout", "gym", "free time", "outside", "lifestyle", "memes", "politics"]):
-        return "Outside work, I hit the gym regularly, follow a vegetarian diet, and love dancing. I also stay plugged into the latest tech news, politics, and memes, and love reverse-engineering gadgets like room neon controllers."
+    # Hobbies & lifestyle (strictly non-diet)
+    if any(k in text for k in ["hobby", "hobbies", "dance", "dancing", "workout", "gym", "free time", "outside", "lifestyle", "memes", "politics", "outside of coding"]):
+        return "Outside coding, I hit the gym regularly, love dancing, and stay plugged into tech memes and global politics. I also love tinkering with hardware, like building custom remotes for my room."
 
     # College & Graduation / Major
     if any(k in text for k in ["graduate", "graduation", "college", "university", "major", "degree", "branch", "iit", "physics"]):
@@ -160,8 +160,18 @@ async def generate_response(
     if session_groundings is None:
         session_groundings = []
 
+    # Detect repeated consecutive queries to prevent repetitive agreement loops (e.g. "Yeah, exactly that")
+    repetition_hint = ""
+    if conversation_history:
+        user_msgs = [m for m in conversation_history if m.get("role") == "user"]
+        if user_msgs and user_msgs[-1].get("content", "").strip().lower() == user_text.strip().lower():
+            repetition_hint = "\n[CRITICAL NOTE: The interviewer asked this exact question again. Rephrase naturally from a fresh angle or give a different concrete example. DO NOT say 'Yeah, exactly that' and DO NOT repeat your previous response.]\n"
+
     # 1. Try OpenAI if key is present
     system_prompt = build_system_prompt(user_text, session_groundings)
+    if repetition_hint:
+        system_prompt += repetition_hint
+
     if openai_client:
         try:
             model_name = "gpt-4o-mini"
@@ -188,6 +198,8 @@ async def generate_response(
                 for msg in conversation_history[-6:]:
                     speaker = "Interviewer" if msg["role"] == "user" else "Piyush"
                     full_prompt += f"{speaker}: {msg['content']}\n"
+                if repetition_hint:
+                    full_prompt += f"{repetition_hint}\n"
                 full_prompt += f"Interviewer: {user_text}\nPiyush (1 to 2 spoken sentences, zero fluff):"
 
                 response = genai_client.models.generate_content(
